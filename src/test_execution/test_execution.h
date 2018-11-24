@@ -11,6 +11,7 @@
 #include <list>
 #include <fstream>
 #include <thread>
+#include "test_execution_config.h"
 
 using namespace std;
 
@@ -30,6 +31,7 @@ class TestExecution {
 
 
 public:
+
 
     /*执行实验测试
      * 参数：实验名称，编译目标，实验作业所在文件夹
@@ -54,7 +56,12 @@ public:
                  wstring work_dir, wstring dongmendb_src_dir,
                  wstring output_dir);
 
+    int batchrun(TestExecutionConfig config);
+
 protected:
+    /*初始化输出文件夹*/
+    int init_output_dir(wstring ouput_dir);
+
     /*初始化dongmendb文件夹*/
     int init_dongmendb(wstring work_dir, wstring dir_name);
 
