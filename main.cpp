@@ -9,7 +9,7 @@ int main()
     char tmp[400];
     //database configuartion
     char dbuser[30] = "root";//mysql账号名
-    char dbpasswd[30] = "123456"; //mysql账号密码
+    char dbpasswd[30] = "1234567"; //mysql账号密码
     char dbip[30] = "localhost";
     char dbname[50] = "dbcourses";//数据库名
     char tablename[50] = "knowledgepoint";//数据表名
@@ -39,7 +39,9 @@ int main()
         }
     }
     else {
-        MessageBoxA(NULL, "Unable to connect the database,check your configuration!", "", NULL);
+        MessageBoxW(NULL, L"无法连接数据库,请检查连接配置!", L"", NULL);
+
+        exit(0);
     }
 
     //sprintf(tmp, "insert into %s values(%s,%d,%d)", tablename, "null", x, y); //注意如何向具有自增字段的数据库中插入记录
