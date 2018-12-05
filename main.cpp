@@ -11,8 +11,8 @@ int main()
     char dbuser[30] = "root";//mysql账号名
     char dbpasswd[30] = "123456"; //mysql账号密码
     char dbip[30] = "localhost";
-    char dbname[50] = "student";//数据库名
-    char tablename[50] = "bl";//数据表名
+    char dbname[50] = "dbcourses";//数据库名
+    char tablename[50] = "knowledgepoint";//数据表名
     char *query = NULL;
 
     int x;
