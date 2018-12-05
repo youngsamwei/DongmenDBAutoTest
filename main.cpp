@@ -1,36 +1,85 @@
-#include <iostream>
-#include "src/test_execution/test_execution.h"
+#include "stdio.h"
+#include "mysql.h"
 
-int main() {
-    locale::global(locale(""));
+int main()
+{
+    MYSQL * con; //= mysql_init((MYSQL*) 0); 
+    MYSQL_RES *res;
+    MYSQL_ROW row;
+    char tmp[400];
+    //database configuartion
+    char dbuser[30] = "root";//mysql账号名
+    char dbpasswd[30] = "123456"; //mysql账号密码
+    char dbip[30] = "localhost";
+    char dbname[50] = "student";//数据库名
+    char tablename[50] = "bl";//数据表名
+    char *query = NULL;
 
-    /*实验2的实验设置*/
-    wstring exp_name = L"experiment_2";
-    wstring exp_target = L"exp_01_04_update_test";
-    wstring exp_dir_name = L"F:\\云班课作业 2018\\计算机16-1，2，3-数据库系统-课程设计_实验2_实现u/";
-    wstring a= L"云班课作业";
-    wstring work_dir = L"F:/dongmendb";
-    wstring dongmendb_src_dir = L"E:/CLion_workspace/DongmenDB";
-    wstring output_dir = L"F:\\dongmendb_output";
+    int x;
+    int y;
+    int rt;//return value  
+    unsigned int t;
 
-    std::map<wstring, wstring> exp_files;
-    exp_files[L"exp_01_04_update.c"] = L"/src_experiment/exp_01_stmt_parser/exp_01_04_update.c";
-    exp_files[L"exp_07_05_update.c"] = L"/src_experiment/exp_07_physical_operate/exp_07_05_update.c";
+    int count = 0;
 
-    /*实验3的实验设置*/
-//    wstring exp_name = L"experiment_3";
-//    wstring exp_target = L"exp_01_05_delete_test";
-//    wstring exp_dir_name = L"F:\\云班课作业 2018\\计算机16-1，2，3-数据库系统-课程设计_实验3_实现D/";
-//    wstring a= L"云班课作业";
-//    wstring work_dir = L"F:/dongmendb";
-//    wstring dongmendb_src_dir = L"E:/CLion_workspace/DongmenDB";
-//    wstring output_dir = L"F:\\dongmendb_output_exp_3";
-//
-//    std::map<wstring, wstring> exp_files;
-//    exp_files[L"exp_01_05_delete.c"] = L"/src_experiment/exp_01_stmt_parser/exp_01_05_delete.c";
-//    exp_files[L"exp_07_06_delete.c"] = L"/src_experiment/exp_07_physical_operate/exp_07_06_delete.c";
+    con = mysql_init((MYSQL*)0);
 
-    TestExecution te;
-//    te.run(exp_name, exp_target, exp_dir_name, exp_files, work_dir, dongmendb_src_dir, output_dir);
-    te.batchrun(exp_name, exp_target, exp_dir_name, exp_files, work_dir, dongmendb_src_dir, output_dir);
+    if (con != NULL && mysql_real_connect(con, dbip, dbuser, dbpasswd, dbname, 3306, NULL, 0)) {
+        if (!mysql_select_db(con, dbname)) {
+            printf("Select successfully the database!\n");
+            con->reconnect = 1;
+            query = "set names \'GBK\'";
+            rt = mysql_real_query(con, query, strlen(query));
+            if (rt) {
+                printf("Error making query: %s !!!\n", mysql_error(con));
+            }
+            else {
+                printf("query %s succeed!\n", query);
+            }
+        }
+    }
+    else {
+        MessageBoxA(NULL, "Unable to connect the database,check your configuration!", "", NULL);
+    }
+
+    //sprintf(tmp, "insert into %s values(%s,%d,%d)", tablename, "null", x, y); //注意如何向具有自增字段的数据库中插入记录
+    sprintf(tmp, "insert into bl values(null,'x','x','x','x')");
+
+
+    rt = mysql_real_query(con, tmp, strlen(tmp));
+    if (rt)
+    {
+        printf("Error making query: %s !!!\n", mysql_error(con));
+    }
+    else
+    {
+        printf("%s executed!!!\n", tmp);
+    }
+
+    sprintf(tmp, "select * from %s", tablename);
+    rt = mysql_real_query(con, tmp, strlen(tmp));
+    if (rt)
+    {
+        printf("Error making query: %s !!!\n", mysql_error(con));
+    }
+    else
+    {
+        printf("%s executed!!!\n", tmp);
+    }
+    res = mysql_store_result(con);//将结果保存在res结构体中
+
+    while (row = mysql_fetch_row(res)) {
+        for (t = 0; t<mysql_num_fields(res); t++) {
+            printf("%s  ", row[t]);
+        }
+        printf(".............\n");
+        count++;
+    }
+
+    printf("number of rows %d\n", count);
+    printf("mysql_free_result...\n");
+    mysql_free_result(res);
+    mysql_close(con);
+    system("pause");
+    return 0;
 }

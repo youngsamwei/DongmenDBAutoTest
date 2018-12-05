@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
     /*实验2的实验设置*/
     TestExecutionConfig experiment_config_2(L"experiment_2",
                                             L"exp_01_04_update_test",
-                                            L"F:\\云班课作业 2018\\计算机16-1，2，3-数据库系统-课程设计_实验2_实现u_第三次/",
+                                            L"F:\\云班课作业 2018\\计算机16-1，2，3-数据库系统-课程设计_实验2_实现u_第五次/",
                                             L"云班课作业",
                                             L"F:/dongmendb",
                                             L"E:/CLion_workspace/DongmenDB",
@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
     /*实验3的实验设置*/
     TestExecutionConfig experiment_config_3(L"experiment_3",
                                             L"exp_01_05_delete_test",
-                                            L"F:\\云班课作业 2018\\计算机16-1，2，3-数据库系统-课程设计_实验3_实现D_第三次/",
+                                            L"F:\\云班课作业 2018\\计算机16-1，2，3-数据库系统-课程设计_实验3_实现D_第五次/",
                                             L"云班课作业",
                                             L"F:/dongmendb",
                                             L"E:/CLion_workspace/DongmenDB",
@@ -34,7 +34,8 @@ int main(int argc, char *argv[]) {
 
     TestExecution te;
 //    te.run(exp_name, exp_target, exp_dir_name, exp_files, work_dir, dongmendb_src_dir, output_dir);
-    te.batchrun(experiment_config_3);
+    te.batchrun(experiment_config_2);
 
+    te.batchrun(experiment_config_3);
 }
 
