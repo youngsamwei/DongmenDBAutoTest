@@ -9,7 +9,7 @@ int main()
     char tmp[400];
     //database configuartion
     char dbuser[30] = "root";//mysql账号名
-    char dbpasswd[30] = "1234567"; //mysql账号密码
+    char dbpasswd[30] = "123456"; //mysql账号密码
     char dbip[30] = "localhost";
     char dbname[50] = "dbcourses";//数据库名
     char tablename[50] = "knowledgepoint";//数据表名
