@@ -14,3 +14,10 @@ boost_1_68_0.zip
  编译完成后，可以配置CMakeLists.txt了
  boost中包含了全部的头文件
  在stage中包含了产生的dll
+
+3 使用 mysql connector c++ 1.1.11
+
+ mingw
+ gcc
+ boost
+ mysql connector c++
