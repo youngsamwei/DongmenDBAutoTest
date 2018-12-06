@@ -32,7 +32,7 @@ yum install -y boost boost-devel boost-doc
 #include <cppconn/statement.h>
 #include <cppconn/prepared_statement.h>
 
-#include "../../include/mysqlconn_wrapper.h"
+#include "mysqlconn_wrapper.h"
 
 using namespace std;
 
