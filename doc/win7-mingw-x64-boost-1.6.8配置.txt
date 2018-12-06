@@ -1,0 +1,14 @@
+1 文件版本
+window 7
+mingw-w64:x86_64-8.1.0-posix-seh-rt_v6-rev0
+boost_1_68_0.zip
+
+强调：在path中添加mingw的bin目录时，目录前后不要加双引号！！！
+否则在编译boost时会出： gcc: error: CreateProcess: No such file or directory
+
+2 编译boost
+
+ 2.1 运行 >bootstrap gcc 产生b2.exe
+ 2.2 运行b2 --build-type=complete link=shared toolset=gcc address-model=64 threading=multi stage
+
+ 编译完成后，可以配置CMakeLists.txt了
