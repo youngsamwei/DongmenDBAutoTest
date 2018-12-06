@@ -9,6 +9,8 @@ boost_1_68_0.zip
 2 编译boost
 
  2.1 运行 >bootstrap gcc 产生b2.exe
- 2.2 运行b2 --build-type=complete link=shared toolset=gcc address-model=64 threading=multi stage
+ 2.2 运行b2 --build-type=complete link=shared toolset=gcc architecture=x64 address-model=64 threading=multi stage
 
  编译完成后，可以配置CMakeLists.txt了
+ boost中包含了全部的头文件
+ 在stage中包含了产生的dll

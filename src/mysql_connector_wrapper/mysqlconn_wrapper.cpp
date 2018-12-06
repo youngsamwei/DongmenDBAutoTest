@@ -34,7 +34,6 @@ yum install -y boost boost-devel boost-doc
 
 #include "mysqlconn_wrapper.h"
 
-using namespace std;
 
 MySQLConnWrapper::MySQLConnWrapper()
 {

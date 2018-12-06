@@ -12,7 +12,7 @@ set(CMAKE_CXX_STANDARD 11)
 #set(MYSQL_CONNECTOR_LINK_DIR "mysqlcppconn_1.0.5/lib")
 
 # mysql connector c++ 8.0.13
-set(MYSQL_CONNECTOR_INC_DIR "mysqlcppconn/include/jdbc" "mysqlcppconn/include/mysqlx")
+set(MYSQL_CONNECTOR_INC_DIR "mysqlcppconn/include/jdbc" )
 set(MYSQL_CONNECTOR_LINK_DIR "mysqlcppconn/lib64")
 
 include_directories(${MYSQL_CONNECTOR_INC_DIR})
