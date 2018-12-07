@@ -9,7 +9,8 @@ boost_1_68_0.zip
 2 编译boost
 
  2.1 运行 >bootstrap gcc 产生b2.exe
- 2.2 运行b2 --build-type=complete link=shared toolset=gcc architecture=x64 address-model=64 threading=multi stage
+ 2.2 运行b2 --build-type=complete link=shared toolset=gcc architecture=x86 address-model=64 threading=multi stage
+
 
  编译完成后，可以配置CMakeLists.txt了
  boost中包含了全部的头文件
@@ -17,7 +18,11 @@ boost_1_68_0.zip
 
 3 使用 mysql connector c++ 1.1.11
 
- mingw
+ mingw MinGW-x86_64-7.3
  gcc
- boost
- mysql connector c++
+ boost boost_1_68_0
+ mysql connector c++ 1.1.11
+
+能编译通过，但提示丢失libgcc_s_seh-1.dll
+
+ 32位，64位？统一成32位

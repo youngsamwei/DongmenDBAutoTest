@@ -9,8 +9,11 @@ SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 # 引入 boost,
-INCLUDE_DIRECTORIES(D:/boost_1_68_0)
-LINK_DIRECTORIES(D:/boost_1_68_0/stage/lib)
+INCLUDE_DIRECTORIES(D:/boost_1_68_0_msvc_14)
+LINK_DIRECTORIES(D:/boost_1_68_0_msvc_14/lib64-msvc-14.0)
+
+#INCLUDE_DIRECTORIES(D:/boost_1_68_0/)
+#LINK_DIRECTORIES(D:/boost_1_68_0/stage/lib)
 
 #mysql conector c
 #set(MYSQL_CONNECTOR_INC_DIR "mysqlconnector/include")
@@ -60,6 +63,7 @@ add_subdirectory(src)
 # test_mysql_main.cpp 的代码列表
 AUX_SOURCE_DIRECTORY(. MAIN_SRC_LIST)
 ADD_EXECUTABLE(test_mysql_connector_cpp ${MAIN_SRC_LIST} )
+target_link_libraries(test_mysql_connector_cpp mysql_connector_wrapper mysqlcppconn )
 
 #target_link_libraries(DongmenDBAutoTest libmysql )
 
