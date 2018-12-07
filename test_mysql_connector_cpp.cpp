@@ -31,6 +31,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #include <cppconn/resultset.h>
 #include <cppconn/statement.h>
 #include <cppconn/prepared_statement.h>
+#include <cstring>
 
 using namespace std;
 
@@ -46,9 +47,15 @@ int main(void)
         sql::ResultSet *res = NULL;
         sql::PreparedStatement *pstmt = NULL;
 
+        const sql::SQLString host= "tcp://localhost:3366";
+
+        const sql::SQLString username ="root";
+
+        const sql::SQLString psword ="123456";
+
         /* Create a connection */
         driver = get_driver_instance();
-        con = driver->connect("localhost:3366", "root", "123456");
+        con = driver->connect(host, username, psword);
         /* Connect to the MySQL test database */
         con->setSchema("test");
 
