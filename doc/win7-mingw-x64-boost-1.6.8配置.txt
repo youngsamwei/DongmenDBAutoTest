@@ -26,3 +26,9 @@ boost_1_68_0.zip
 能编译通过，但提示丢失libgcc_s_seh-1.dll
 
  32位，64位？统一成32位
+
+
+ 下面尝试32位
+ mingw：E:\mingw-w64\i686-8.1.0-posix-dwarf-rt_v6-rev0\mingw32\bin
+ boost: 1.68 在上述mingw中编译
+ mysql connector c++ 1.1.11
