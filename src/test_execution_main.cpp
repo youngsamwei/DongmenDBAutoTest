@@ -16,45 +16,40 @@ int main(int argc, char *argv[]) {
 
     MySQLConnManager connManager;
 
-    connManager.init(dbip,dbuser,dbpasswd,dbname);
+    connManager.init(dbip, dbuser, dbpasswd, dbname);
     if (connManager.reconnect()) {
         if (!connManager.select_db(dbname)) {
-            cout<<"Select successfully the database: "<<dbname<<endl;
-        }else{
-            cout<<"select database error: "<<connManager.get_error_msg()<<endl;
+            cout << "Select successfully the database: " << dbname << endl;
+        } else {
+            cout << "select database error: " << connManager.get_error_msg() << endl;
         }
-    }  else {
-        cout<<"error: "<<connManager.get_error_msg()<<endl;
+    } else {
+        cout << "error: " << connManager.get_error_msg() << endl;
 
         exit(0);
     }
 
-    int round = 6;
+    int round = 7;
     /*实验2的实验设置*/
-    TestExecutionConfig experiment_config_2( L"experiment_2",
+    TestExecutionConfig experiment_config_2(L"experiment_2",
                                             L"exp_01_04_update_test",
-                                             L"F:\\\\云班课作业 2018\\\\计算机16-1，2，3-数据库系统-课程设计_实验2_实现u_第6次",
-//                                            Utils::s2ws(string("F:\\云班课作业 2018\\计算机16-1，2，3-数据库系统-课程设计_实验2_实现u_第") +
-//                                                        to_string(round) + string("次/")),
+                                            L"F:/云班课作业 2018/计算机16-1，2，3-数据库系统-课程设计_实验2_实现u_第7次",
                                             L"云班课作业",
                                             L"F:/dongmendb",
                                             L"E:/CLion_workspace/DongmenDB",
-                                            L"F:\\dongmendb_output_exp_2",
+                                            L"F:/dongmendb_output_exp_2",
                                             round, &connManager);
     experiment_config_2.exp_files[L"exp_01_04_update.c"] = L"/src_experiment/exp_01_stmt_parser/exp_01_04_update.c";
     experiment_config_2.exp_files[L"exp_07_05_update.c"] = L"/src_experiment/exp_07_physical_operate/exp_07_05_update.c";
 
-
     /*实验3的实验设置*/
-    TestExecutionConfig experiment_config_3( L"experiment_3",
+    TestExecutionConfig experiment_config_3(L"experiment_3",
                                             L"exp_01_05_delete_test",
-                                             L"F:\\\\云班课作业 2018\\\\计算机16-1，2，3-数据库系统-课程设计_实验3_实现D_第6次",
-//                                            Utils::s2ws(string("F:\\云班课作业 2018\\计算机16-1，2，3-数据库系统-课程设计_实验3_实现D_第") +
-//                                                        to_string(round) + string("次/")),
+                                            L"F:/云班课作业 2018/计算机16-1，2，3-数据库系统-课程设计_实验3_实现D_第7次",
                                             L"云班课作业",
                                             L"F:/dongmendb",
                                             L"E:/CLion_workspace/DongmenDB",
-                                            L"F:\\dongmendb_output_exp_3",
+                                            L"F:/dongmendb_output_exp_3",
                                             round, &connManager);
     experiment_config_3.exp_files[L"exp_01_05_delete.c"] = L"/src_experiment/exp_01_stmt_parser/exp_01_05_delete.c";
     experiment_config_3.exp_files[L"exp_07_06_delete.c"] = L"/src_experiment/exp_07_physical_operate/exp_07_06_delete.c";
