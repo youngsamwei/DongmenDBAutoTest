@@ -11,8 +11,9 @@ int main()
     char dbuser[30] = "root";//mysql账号名
     char dbpasswd[30] = "123456"; //mysql账号密码
     char dbip[30] = "localhost";
-    char dbname[50] = "dbcourses";//数据库名
-    char tablename[50] = "knowledgepoint";//数据表名
+    char dbname[50] = "mysql";//数据库名
+    char tablename[50] = "user";//数据表名
+    unsigned int port = 3306;
     char *query = NULL;
 
     int x;
@@ -24,7 +25,7 @@ int main()
 
     con = mysql_init((MYSQL*)0);
 
-    if (con != NULL && mysql_real_connect(con, dbip, dbuser, dbpasswd, dbname, 3306, NULL, 0)) {
+    if (con != NULL && mysql_real_connect(con, dbip, dbuser, dbpasswd, dbname, port, NULL, 0)) {
         if (!mysql_select_db(con, dbname)) {
             printf("Select successfully the database!\n");
             con->reconnect = 1;
