@@ -7,11 +7,14 @@
 
 #include <cstddef>
 #include <cstring>
+#include <mysqlconn_manager.h>
+
 using namespace std;
 
 class TestExecutionConfig {
 
 public:
+    MySQLConnManager *connManager;
     wstring expName;
     wstring expTarget;
     wstring expDirName;
@@ -20,6 +23,7 @@ public:
     wstring dongmendbSrcDir;
     wstring outputDir;
     std::map<wstring, wstring> exp_files;
+    int round;
 
     TestExecutionConfig(wstring expName,
                         wstring expTarget,
@@ -27,14 +31,36 @@ public:
                         wstring title,
                         wstring workDir,
                         wstring dongmendbSrcDir,
-                        wstring outputDir){
-        this->expName = expDirName;
+                        wstring outputDir) {
+        this->expName = expName;
         this->expTarget = expTarget;
         this->expDirName = expDirName;
         this->title = title;
-        this->workDir =workDir;
+        this->workDir = workDir;
         this->dongmendbSrcDir = dongmendbSrcDir;
         this->outputDir = outputDir;
+    };
+
+    TestExecutionConfig(wstring expName,
+                        wstring expTarget,
+                        wstring expDirName,
+                        wstring title,
+                        wstring workDir,
+                        wstring dongmendbSrcDir,
+                        wstring outputDir,
+                        int round,
+                        MySQLConnManager *connManager)  {
+        this->connManager = connManager;
+        this->round = round;
+
+        this->expName = expName;
+        this->expTarget = expTarget;
+        this->expDirName = expDirName;
+        this->title = title;
+        this->workDir = workDir;
+        this->dongmendbSrcDir = dongmendbSrcDir;
+        this->outputDir = outputDir;
+
     };
 };
 

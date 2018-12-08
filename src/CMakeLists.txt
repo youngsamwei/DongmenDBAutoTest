@@ -6,7 +6,7 @@ ADD_LIBRARY(mysql_connector_manager ${DIR_SRCS_mysql_connector_wrapper})
 aux_source_directory(test_execution DIR_SRCS_test_execution)
 ADD_LIBRARY(test_execution ${DIR_SRCS_test_execution})
 
-TARGET_LINK_LIBRARIES(mysql_connector_manager test_execution)
+#TARGET_LINK_LIBRARIES(mysql_connector_manager test_execution)
 
 ADD_EXECUTABLE(DongmenDBAutoTest test_execution_main.cpp)
 TARGET_LINK_LIBRARIES(DongmenDBAutoTest test_execution mysql_connector_manager)

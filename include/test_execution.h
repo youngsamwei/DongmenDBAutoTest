@@ -17,6 +17,7 @@ using namespace std;
 
 class TestExecution {
 
+    TestExecutionConfig *config;
     wstring project_name = L"dongmendb";
     wstring cmake_build_type = L" -DCMAKE_BUILD_TYPE=Debug ";
     wstring cmake_files = L"-G \"CodeBlocks - MinGW Makefiles\" ";
@@ -32,7 +33,7 @@ class TestExecution {
 
 public:
 
-
+    TestExecution(TestExecutionConfig *config);
     /*执行实验测试
      * 参数：实验名称，编译目标，实验作业所在文件夹
      * exp_dir_name 指向一个学生的一个实验任务
@@ -56,7 +57,7 @@ public:
                  wstring work_dir, wstring dongmendb_src_dir,
                  wstring output_dir);
 
-    int batchrun(TestExecutionConfig config);
+    int batchrun(TestExecutionConfig *config);
 
 protected:
     /*初始化输出文件夹*/
@@ -88,6 +89,13 @@ protected:
     /*获取测试结果*/
     int cmd_get_test_result();
 
+    /*保存执行结果：学号，姓名，实验名称，第几次测试，测试结果，测试日期时间*/
+    int store_test_execution_result(string sno, string sname, string expname, int round, string result);
+
+    /*更新测试结果*/
+    int update_test_execution_result(string sno, string sname, string expname, int round, string result);
+
+
 private:
     /*产生指定长度的随机字符串, 默认长度32*/
     char *rand_str(size_t len);
@@ -102,8 +110,6 @@ private:
     /*检查命令的输出中是否包含contents指定的内容*/
     int executeCMD(wstring cmd, ofstream& xout, string contents);
 
-    string  ws2s(const wstring& ws);
-    wstring  s2ws(const string& s);
 
 
     /*利用接收到的字符数作为监控标识，
