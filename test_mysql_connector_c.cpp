@@ -1,9 +1,33 @@
+
 #include "stdio.h"
 #include "mysql.h"
 
-int main()
-{
-    MYSQL * con; //= mysql_init((MYSQL*) 0); 
+#include <string>
+
+#include <iostream>
+#include <mysqlconn_manager.h>
+
+using namespace std;
+
+int test_mysqlconn_manager(){
+    MySQLConnManager conn;
+    cout<<conn.init("127.0.0.1", "root", "123456", "mysql", 3366, "utf8")<<endl;
+    cout<<conn.reconnect()<<endl;
+    cout<<conn.get_error_msg()<<endl;
+    vector<vector<string> > v;
+    cout<<conn.select_data("select * from user", v)<<endl;
+    for(size_t i = 0 ; i < v.size(); i++)
+    {
+        for(size_t j = 0; j < v[i].size(); j++)
+            cout<<v[i][j]<<endl;
+        cout<<"---------------"<<endl;
+    }
+    cout<<conn.get_error_msg()<<endl;
+    return 0;
+}
+
+int test_mysql_conn_c(){
+    MYSQL * con; //= mysql_init((MYSQL*) 0);
     MYSQL_RES *res;
     MYSQL_ROW row;
     char tmp[400];
@@ -18,7 +42,7 @@ int main()
 
     int x;
     int y;
-    int rt;//return value  
+    int rt;//return value
     unsigned int t;
 
     int count = 0;
@@ -83,6 +107,9 @@ int main()
     printf("mysql_free_result...\n");
     mysql_free_result(res);
     mysql_close(con);
-    system("pause");
     return 0;
+}
+int main()
+{
+    test_mysqlconn_manager();
 }
