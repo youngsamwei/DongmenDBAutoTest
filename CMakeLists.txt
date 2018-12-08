@@ -9,11 +9,14 @@ SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 # 引入 boost,
+INCLUDE_DIRECTORIES(D:/boost_1_68_0_mingw-win64-x86_64-8.1.0)
+LINK_DIRECTORIES(D:/boost_1_68_0_mingw-win64-x86_64-8.1.0/stage/lib)
+
 #INCLUDE_DIRECTORIES(D:/boost_1_68_0-mingw-win64-i686)
 #LINK_DIRECTORIES(D:/boost_1_68_0-mingw-win64-i686/stage/lib)
 
-INCLUDE_DIRECTORIES(D:/boost_1_68_0-msvc-14.1-64)
-LINK_DIRECTORIES(D:/boost_1_68_0-msvc-14.1-64/lib64-msvc-14.1)
+#INCLUDE_DIRECTORIES(D:/boost_1_68_0-msvc-14.1-64)
+#LINK_DIRECTORIES(D:/boost_1_68_0-msvc-14.1-64/lib64-msvc-14.1)
 
 
 #INCLUDE_DIRECTORIES(D:/boost_1_57_0-msvc-11.0-32/)

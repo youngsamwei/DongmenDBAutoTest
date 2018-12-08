@@ -33,6 +33,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #include <cppconn/prepared_statement.h>
 #include <cstring>
 
+
+#ifdef WIN32
+#pragma comment(lib,"mysqlcppconn.lib")
+#endif // WIN32
+
 using namespace std;
 
 int main(void)
