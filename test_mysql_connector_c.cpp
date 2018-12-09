@@ -6,8 +6,36 @@
 
 #include <iostream>
 #include <mysqlconn_manager.h>
+#include "simhash.h"
 
 using namespace std;
+
+
+int test_simhash(){
+    char *a = "我";
+    char *b = "喜欢";
+    char *c = "吃";
+    char *d = "鸭梨";
+
+    char *x = "我";
+    char *y = "爱";
+    char *z = "吃";
+    char *w = "梨";
+
+    const char *test1[4];
+    const char *test2[4];
+    test1[0] = a, test1[1] = b, test1[2] = c, test1[3] = d;
+    test2[0] = x, test2[1] = y, test2[2] = z, test2[3] = w;
+    ul_int hash1 = SimHash::sh_simhash(test1, 4);
+    ul_int hash2 = SimHash::sh_simhash(test2, 4);
+    float similarity = 0.0f;
+    if(hash1 < hash2)
+        similarity = hash1 * 1.0f / hash2;
+    else
+        similarity = hash2 * 1.0f / hash1;
+    printf("hash1=%x, hash2=%x, similarity=%f\n", hash1, hash2, similarity);
+    return 0;
+}
 
 int test_mysqlconn_manager(){
     MySQLConnManager conn;
@@ -105,7 +133,8 @@ int test_mysql_conn_c(){
 
     return 0;
 }
+
 int main()
 {
-    test_mysql_conn_c();
+    test_simhash();
 }

@@ -19,4 +19,6 @@ public:
     static wstring FormatWstring(const wchar_t *lpcwszFormat,...);
 
 };
+
+
 #endif //DONGMENDBAUTOTEST_UTILS_H

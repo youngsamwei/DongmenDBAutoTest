@@ -3,6 +3,9 @@
 aux_source_directory(mysql_connector_manager DIR_SRCS_mysql_connector_wrapper)
 ADD_LIBRARY(mysql_connector_manager ${DIR_SRCS_mysql_connector_wrapper})
 
+aux_source_directory(simhash DIR_SRCS_simhash)
+ADD_LIBRARY(simhash ${DIR_SRCS_simhash})
+
 aux_source_directory(test_execution DIR_SRCS_test_execution)
 ADD_LIBRARY(test_execution ${DIR_SRCS_test_execution})
 

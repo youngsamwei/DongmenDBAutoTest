@@ -21,10 +21,10 @@ INCLUDE_DIRECTORIES(include)
 LINK_DIRECTORIES(lib)
 
 #设置被依赖的库
-SET(EXTRA_LIBS mysql_connector_manager test_execution)
+SET(EXTRA_LIBS mysql_connector_manager test_execution simhash)
 
 add_subdirectory(src)
 
 AUX_SOURCE_DIRECTORY(. MAIN_SRC_LIST)
 ADD_EXECUTABLE(test_mysql_connector_c ${MAIN_SRC_LIST} )
-target_link_libraries(test_mysql_connector_c ${EXTRA_LIBS})
+target_link_libraries(test_mysql_connector_c  mysql_connector_manager simhash)
