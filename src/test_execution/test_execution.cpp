@@ -89,14 +89,20 @@ int TestExecution::run(wstring exp_name, wstring exp_target, wstring exp_dir_nam
 
     ofstream xout;
 
+    int ret;
     /*复制文件开始*/
     string copy_log_file_name = Utils::ws2s(output_dir + L"/" + exp_student_name) + "_copy_files_failed.txt";
-    xout.open(copy_log_file_name);
-    assert(xout.is_open());
-    /*复制实验任务的文件:*/
-    int ret = copy_exp_to_dongmendb(exp_dir_name, current_dir, exp_files, xout);
-    xout.close();
-    xout.clear();
+    if (config->outputStyle == OUTPUT_FILE) {
+        xout.open(copy_log_file_name);
+        assert(xout.is_open());
+        /*复制实验任务的文件:*/
+        ret = copy_exp_to_dongmendb(exp_dir_name, current_dir, exp_files, xout);
+        xout.close();
+        xout.clear();
+    }else{
+        /*输出到console*/
+        ret = copy_exp_to_dongmendb(exp_dir_name, current_dir, exp_files);
+    }
     if (ret < 0) {
         clear_dongmendb(work_dir, current_dir);
         result = L"缺少实验文件.";
@@ -117,12 +123,15 @@ int TestExecution::run(wstring exp_name, wstring exp_target, wstring exp_dir_nam
 
     /*build开始*/
     string build_log_file_name = Utils::ws2s(output_dir + L"/" + exp_student_name) + "_build_failed.txt";
-    xout.open(build_log_file_name);
+    if (config->outputStyle == OUTPUT_FILE) {
+        xout.open(build_log_file_name);
 
-    ret = cmd_cmake_build(build_dir, exp_target, xout);
-    xout.close();
-    xout.clear();
-
+        ret = cmd_cmake_build(build_dir, exp_target, xout);
+        xout.close();
+        xout.clear();
+    } else{
+        ret = cmd_cmake_build(build_dir, exp_target);
+    }
     /*检测exe文件是否产生，若产生则编译成功*/
     wstring bin_exe_name = bin_dir + L"/" + exp_target + L".exe";
     int exists = _waccess(bin_exe_name.c_str(), F_OK);
@@ -142,14 +151,16 @@ int TestExecution::run(wstring exp_name, wstring exp_target, wstring exp_dir_nam
 
     string test_cases_execution_log_file_name =
             Utils::ws2s(output_dir + L"/" + exp_student_name) + "_test_cases_execution_failed.txt";
-    xout.open(test_cases_execution_log_file_name);
-
     string test_cased_execution_passed_flag = "[  PASSED  ]";
     wstring exe_file_name = exp_target + L".exe";
-    ret = cmd_exp_target(bin_dir, exe_file_name, xout, test_cased_execution_passed_flag);
-    xout.close();
-    xout.clear();
-
+    if (config->outputStyle == OUTPUT_FILE) {
+        xout.open(test_cases_execution_log_file_name);
+        ret = cmd_exp_target(bin_dir, exe_file_name, xout, test_cased_execution_passed_flag);
+        xout.close();
+        xout.clear();
+    } else{
+        ret = cmd_exp_target(bin_dir, exe_file_name, test_cased_execution_passed_flag);
+    }
     if (ret >= 0) {
         string test_cases_execution_log_file_name_passed =
                 Utils::ws2s(output_dir + L"/" + exp_student_name) + "_test_cases_execution_passed.txt";
@@ -220,6 +231,30 @@ int TestExecution::copy_exp_to_dongmendb(wstring exp_dir_name, wstring dest_dir_
     return 0;
 }
 
+int TestExecution::copy_exp_to_dongmendb(wstring exp_dir_name, wstring dest_dir_name,
+                                         std::map<wstring, wstring> exp_files) {
+    cout << endl;
+    cout << Utils::ws2s(L"开始复制文件..") << endl;
+    map<wstring, wstring>::iterator iter;
+    wstring slash = L"/";
+    for (iter = exp_files.begin(); iter != exp_files.end(); iter++) {
+        wstring find_file = findFileNameEndWith(exp_dir_name, iter->first);
+        if (find_file.length() == 0) {
+            /*若没有找到需要复制的文件*/
+            cout << Utils::ws2s(L"缺少文件:") << Utils::ws2s(iter->first) << endl;
+            return -1;
+        }
+        wstring file_name = exp_dir_name + slash + find_file;
+        wstring dest_file_name = dest_dir_name + slash + iter->second;
+
+        CopyFileW(file_name.c_str(), dest_file_name.c_str(), FALSE);
+        cout << Utils::ws2s(L"复制 ") << Utils::ws2s(file_name) << "  to " << Utils::ws2s(dest_file_name) << endl;
+    }
+    cout << Utils::ws2s(L"复制文件完成");
+    cout << endl;
+    return 0;
+}
+
 int TestExecution::cmd_cmake_refresh(wstring output_dir, wstring project_dir) {
 
     wstring cmd = cmake_exe + cmake_build_type + cmake_files + project_dir;
@@ -260,7 +295,18 @@ int TestExecution::cmd_cmake_build(wstring build_dir_name, wstring exp_target, s
 
     return 0;
 }
+int TestExecution::cmd_cmake_build(wstring build_dir_name, wstring exp_target) {
 
+    wstring cmd = cmake_exe + cmd_build + build_dir_name + cmd_target + exp_target + cmake_others_parameters;
+
+    _wchdir(build_dir_name.c_str());
+
+    cout << endl << Utils::ws2s(cmd) << endl;
+
+    executeCMD(cmd);
+
+    return 0;
+}
 int TestExecution::cmd_exp_target(wstring bin_dir, wstring exp_target, ofstream &xout, string contents) {
 
     _wchdir(bin_dir.c_str());
@@ -268,6 +314,15 @@ int TestExecution::cmd_exp_target(wstring bin_dir, wstring exp_target, ofstream 
     xout << endl << Utils::ws2s(exp_target) << endl;
 
     return executeCMD(exp_target, xout, contents);
+
+}
+int TestExecution::cmd_exp_target(wstring bin_dir, wstring exp_target, string contents) {
+
+    _wchdir(bin_dir.c_str());
+
+    cout << endl << Utils::ws2s(exp_target) << endl;
+
+    return executeCMD(exp_target, contents);
 
 }
 
@@ -532,6 +587,36 @@ int TestExecution::executeCMD(wstring cmd, ofstream &xout, string contents) {
 
         while (fgets(buf_ps, 1024, ptr) != NULL) {
             xout << buf_ps;
+            recieving_chars_count++;
+        }
+        pclose(ptr);
+
+        t.join();
+        recieving_chars_count = -1;
+
+
+        ptr = NULL;
+    } else {
+        printf("popen %s error\n", cmd);
+    }
+    string last_buf(buf_ps);
+
+    return last_buf.find(contents);
+}
+
+
+int TestExecution::executeCMD(wstring cmd, string contents) {
+    char buf_ps[1024] = {0};
+    FILE *ptr;
+    ptr = _wpopen(cmd.c_str(), L"rt");
+    if (ptr != NULL) {
+        recieving_chars_count = 0;
+        string exe_file_name = Utils::ws2s(cmd).c_str();
+        int tm = 10;
+        std::thread t(monitor_test_cases_execution, exe_file_name, tm, std::ref(recieving_chars_count));
+
+        while (fgets(buf_ps, 1024, ptr) != NULL) {
+            cout << buf_ps;
             recieving_chars_count++;
         }
         pclose(ptr);

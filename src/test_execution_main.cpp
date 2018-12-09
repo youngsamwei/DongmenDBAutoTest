@@ -16,6 +16,20 @@ int main(int argc, char *argv[]) {
 
     MySQLConnManager connManager;
 
+
+    int test_round = -1;
+    if (argc == 1) {
+        cout << " DongmenDBAutoTest <test_round_num>" << endl << "error exit." << endl;
+        exit(0);
+    }
+    int r = atoi(argv[1]);
+    if (r > 0) {
+        test_round = r;
+    } else {
+        cout << "DongmenDBAutoTest <test_round_num>  test_round_num should be a num." << endl << "error exit." << endl;
+        exit(0);
+    }
+
     connManager.init(dbip, dbuser, dbpasswd, dbname);
     if (connManager.reconnect()) {
         if (!connManager.select_db(dbname)) {
@@ -29,9 +43,9 @@ int main(int argc, char *argv[]) {
         exit(0);
     }
 
-    int round = 7;
     /*实验2的实验设置*/
-    wstring experiment_2_expDirName = Utils::FormatWstring(L"F:/云班课作业 2018/计算机16-1，2，3-数据库系统-课程设计_实验2_实现u_第%i次", round);
+    wstring experiment_2_expDirName = Utils::FormatWstring(L"F:/云班课作业 2018/计算机16-1，2，3-数据库系统-课程设计_实验2_实现u_第%i次",
+                                                           test_round);
     TestExecutionConfig experiment_config_2(L"experiment_2",
                                             L"exp_01_04_update_test",
                                             experiment_2_expDirName,
@@ -39,12 +53,14 @@ int main(int argc, char *argv[]) {
                                             L"F:/dongmendb",
                                             L"E:/CLion_workspace/DongmenDB",
                                             L"F:/dongmendb_output_exp_2",
-                                            round, &connManager);
+                                            test_round, &connManager,
+                                            OUTPUT_CONSOLE);
     experiment_config_2.exp_files[L"exp_01_04_update.c"] = L"/src_experiment/exp_01_stmt_parser/exp_01_04_update.c";
     experiment_config_2.exp_files[L"exp_07_05_update.c"] = L"/src_experiment/exp_07_physical_operate/exp_07_05_update.c";
 
     /*实验3的实验设置*/
-    wstring experiment_3_expDirName = Utils::FormatWstring(L"F:/云班课作业 2018/计算机16-1，2，3-数据库系统-课程设计_实验3_实现D_第%i次", round);
+    wstring experiment_3_expDirName = Utils::FormatWstring(L"F:/云班课作业 2018/计算机16-1，2，3-数据库系统-课程设计_实验3_实现D_第%i次",
+                                                           test_round);
     TestExecutionConfig experiment_config_3(L"experiment_3",
                                             L"exp_01_05_delete_test",
                                             experiment_3_expDirName,
@@ -52,7 +68,8 @@ int main(int argc, char *argv[]) {
                                             L"F:/dongmendb",
                                             L"E:/CLion_workspace/DongmenDB",
                                             L"F:/dongmendb_output_exp_3",
-                                            round, &connManager);
+                                            test_round, &connManager,
+                                            OUTPUT_CONSOLE);
     experiment_config_3.exp_files[L"exp_01_05_delete.c"] = L"/src_experiment/exp_01_stmt_parser/exp_01_05_delete.c";
     experiment_config_3.exp_files[L"exp_07_06_delete.c"] = L"/src_experiment/exp_07_physical_operate/exp_07_06_delete.c";
 

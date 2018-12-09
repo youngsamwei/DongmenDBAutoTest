@@ -11,6 +11,11 @@
 
 using namespace std;
 
+typedef enum OUTPUT_STYLE {
+    OUTPUT_CONSOLE,
+    OUTPUT_FILE
+} OutputStyle;
+
 class TestExecutionConfig {
 
 public:
@@ -24,6 +29,7 @@ public:
     wstring outputDir;
     std::map<wstring, wstring> exp_files;
     int round;
+    OutputStyle outputStyle;
 
     TestExecutionConfig(wstring expName,
                         wstring expTarget,
@@ -39,6 +45,9 @@ public:
         this->workDir = workDir;
         this->dongmendbSrcDir = dongmendbSrcDir;
         this->outputDir = outputDir;
+
+        /*默认输出测试过程到文件*/
+        this->outputStyle = OUTPUT_FILE;
     };
 
     TestExecutionConfig(wstring expName,
@@ -49,7 +58,8 @@ public:
                         wstring dongmendbSrcDir,
                         wstring outputDir,
                         int round,
-                        MySQLConnManager *connManager)  {
+                        MySQLConnManager *connManager,
+                        OutputStyle outputStyle) {
         this->connManager = connManager;
         this->round = round;
 
@@ -60,7 +70,7 @@ public:
         this->workDir = workDir;
         this->dongmendbSrcDir = dongmendbSrcDir;
         this->outputDir = outputDir;
-
+        this->outputStyle = outputStyle;
     };
 };
 

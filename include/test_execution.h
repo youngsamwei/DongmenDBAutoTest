@@ -76,15 +76,20 @@ protected:
     int copy_exp_to_dongmendb(wstring exp_dir_name, wstring dest_dir_name,
                               std::map<wstring, wstring> exp_files, ofstream& out);
 
+    int copy_exp_to_dongmendb(wstring exp_dir_name, wstring dest_dir_name,
+                              std::map<wstring, wstring> exp_files);
+
     int cmd_cmake_refresh(wstring output_dir, wstring build_dir_name);
     /*在cmd中执行命令，清理cmake产生的文件*/
     int cmd_cmake_clean(wstring build_dir_name);
 
     /*在cmd中执行命令，build代码*/
     int cmd_cmake_build(wstring build_dir_name, wstring exp_target, ofstream& out);
+    int cmd_cmake_build(wstring build_dir_name, wstring exp_target);
 
     /*在cmd中执行命令，运行exe目标文件*/
     int cmd_exp_target(wstring bin_dir, wstring exp_target, ofstream& out, string contents);
+    int cmd_exp_target(wstring bin_dir, wstring exp_target, string contents);
 
     /*获取测试结果*/
     int cmd_get_test_result();
@@ -106,9 +111,11 @@ private:
     int  removeDirW(const wchar_t*  dirPath);
     /*执行cmd命令，并将执行结果写入result*/
     int executeCMD(wstring cmd, ofstream& xout);
+
     int executeCMD(wstring cmd);
     /*检查命令的输出中是否包含contents指定的内容*/
     int executeCMD(wstring cmd, ofstream& xout, string contents);
+    int executeCMD(wstring cmd, string contents);
 
 
 
