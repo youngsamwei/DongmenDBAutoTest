@@ -15,7 +15,8 @@ public:
     static string  ws2s(const wstring& ws);
     static wstring  s2ws(const string& s);
 
-    template<typename ... Args>
-    static string string_format( const std::string& format, Args ... args );
+    static string FormatString(const char *lpcszFormat,...);
+    static wstring FormatWstring(const wchar_t *lpcwszFormat,...);
+
 };
 #endif //DONGMENDBAUTOTEST_UTILS_H

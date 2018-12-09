@@ -4,6 +4,7 @@
 
 #include <memory.h>
 #include <memory>
+#include <cstdarg>
 #include "Utils.h"
 
 string Utils::ws2s(const wstring &ws) {
@@ -40,11 +41,38 @@ string Utils::ws2s(const wstring &ws) {
     return result;
 }
 
-template<typename ... Args>
-string Utils::string_format( const std::string& format, Args ... args )
+string Utils::FormatString(const char *lpcszFormat,...)
 {
-    size_t size = snprintf( nullptr, 0, format.c_str(), args ... ) + 1; // Extra space for '\0'
-    unique_ptr<char[]> buf( new char[ size ] );
-    snprintf( buf.get(), size, format.c_str(), args ... );
-    return string( buf.get(), buf.get() + size - 1 ); // We don't want the '\0' inside
+    char *pszStr = NULL;
+    if (NULL != lpcszFormat)
+    {
+        va_list marker = NULL;
+        va_start(marker, lpcszFormat); //初始化变量参数
+        size_t nLength = _vscprintf(lpcszFormat, marker) + 1; //获取格式化字符串长度
+        pszStr = new char[nLength];
+        memset(pszStr, '\0', nLength);
+        _vsnprintf_s(pszStr, nLength, nLength, lpcszFormat, marker);
+        va_end(marker); //重置变量参数
+    }
+    string strResult(pszStr);
+    delete[]pszStr;
+    return strResult;
+}
+
+wstring Utils::FormatWstring(const wchar_t *lpcwszFormat,...)
+{
+    wchar_t *pszStr = NULL;
+    if (NULL != lpcwszFormat)
+    {
+        va_list marker = NULL;
+        va_start(marker, lpcwszFormat); //初始化变量参数
+        size_t nLength = _vscwprintf(lpcwszFormat, marker) + 1; //获取格式化字符串长度
+        pszStr = new wchar_t[nLength];
+        memset(pszStr, L'\0', nLength);
+        _vsnwprintf_s(pszStr, nLength, nLength, lpcwszFormat, marker);
+        va_end(marker); //重置变量参数
+    }
+    wstring strResult(pszStr);
+    delete[]pszStr;
+    return strResult;
 }
