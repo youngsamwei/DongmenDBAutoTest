@@ -16,6 +16,6 @@ public:
     int run_simhash(TestExecutionConfig *config);
     int run_simhash();
 
-    int run_compare();
+    int run_cluster();
 };
 #endif //DONGMENDBAUTOTEST_SIMHASH_EXPERIMENT_H

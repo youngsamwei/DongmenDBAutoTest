@@ -75,6 +75,7 @@ int TestSimhashExperiment::run_simhash() {
         //关闭文件夹
         _findclose(handle);
     }
+    return 0;
 };
 
 
@@ -84,7 +85,7 @@ int TestSimhashExperiment::run_simhash(TestExecutionConfig *config) {
     return this->run_simhash();
 };
 
-/* 第二步：计算学生间的simhash值的海明距离*/
-int TestSimhashExperiment::run_compare() {
-
+/* 第二步：根据simhash值聚类*/
+int TestSimhashExperiment::run_cluster() {
+    return 0;
 };
