@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <mysqlconn_manager.h>
+#include <Utils.h>
 #include "simhash.h"
 
 using namespace std;
@@ -28,6 +29,24 @@ int test_simhash(){
     test2[0] = x, test2[1] = y, test2[2] = z, test2[3] = w;
     ul_int hash1 = SimHash::sh_simhash(test1, 4);
     ul_int hash2 = SimHash::sh_simhash(test2, 4);
+    float similarity = 0.0f;
+    if(hash1 < hash2)
+        similarity = hash1 * 1.0f / hash2;
+    else
+        similarity = hash2 * 1.0f / hash1;
+    printf("hash1=%x, hash2=%x, similarity=%f\n", hash1, hash2, similarity);
+    return 0;
+}
+
+
+int test_simhash_file(){
+    wstring file1 = L"F:\\云班课作业 2018\\计算机16-1，2，3-数据库系统-课程设计_实验2_实现u_第7次\\201401060223_孙仕敏/01-exp_01_04_update.c";
+    wstring file2 = L"F:\\云班课作业 2018\\计算机16-1，2，3-数据库系统-课程设计_实验2_实现u_第7次\\201501030413_毛锟/04-exp_01_04_update.c";
+
+    string char_file1 = Utils::ws2s(file1);
+    string char_file2 = Utils::ws2s(file2);
+    ul_int hash1 = SimHash::simhash_file(char_file1.c_str());
+    ul_int hash2 = SimHash::simhash_file(char_file2.c_str());
     float similarity = 0.0f;
     if(hash1 < hash2)
         similarity = hash1 * 1.0f / hash2;
@@ -136,5 +155,6 @@ int test_mysql_conn_c(){
 
 int main()
 {
-    test_simhash();
+    test_simhash_file();
+
 }

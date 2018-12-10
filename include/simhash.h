@@ -12,5 +12,10 @@ public:
     static ul_int sh_hash(const char *arKey, unsigned int nKeyLength);
     static ul_int sh_simhash(const char *tokens[], unsigned int length);
 
+    static ul_int sh_simhash(vector<char *> tokens);
+
+    /*计算文本文件的simhash值*/
+    static ul_int simhash_file(const char *fileName);
+
 };
 #endif
