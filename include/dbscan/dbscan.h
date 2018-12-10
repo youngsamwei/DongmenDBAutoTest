@@ -33,6 +33,6 @@ public:
     bool init(DataPointMysqlConnManager *connManager, string &sql_select, double radius, int minPTs);
     bool Init(char* fileName, double radius, int minPTs);    //初始化操作
     bool DoDBSCANRecursive();            //DBSCAN递归算法
-    bool WriteToFile(char* fileName);    //将聚类结果写入文件
+    bool WriteToFile(const char* fileName);    //将聚类结果写入文件
 };
 #endif //DONGMENDBAUTOTEST_DBSCAN_H

@@ -84,7 +84,7 @@ bool DBSCANClusterAnalysis::Init(char* fileName, double radius, int minPTs)
 参数：
 char* fileName;    //要写入的文件名
 返回值： true    */
-bool DBSCANClusterAnalysis::WriteToFile(char* fileName )
+bool DBSCANClusterAnalysis::WriteToFile(const char* fileName )
 {
     ofstream of1(fileName);                                //初始化文件输出流
     for(unsigned long i=0; i<dataNum;i++)                //对处理过的每个数据点写入文件
