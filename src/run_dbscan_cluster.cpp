@@ -28,7 +28,8 @@ int main(int argc, char *argv[]) {
         test_round = r;
         file_name = argv[2];
     } else {
-        cout << "run_dbscan_cluster <test_round_num>  test_round_num should be a num." << endl << "error exit." << endl;
+        cout << "run_dbscan_cluster <test_round_num> <file_name>\n test_round_num should be a num." << endl
+             << "error exit." << endl;
         exit(0);
     }
 
@@ -48,13 +49,11 @@ int main(int argc, char *argv[]) {
     string sql_select = "select sno, sname, simhash from experiments_simhash where round = " + to_string(test_round) +
                         " and filename='" + file_name + "'";
 
-    dbscan_cluster.init(&connManager, sql_select, 10, 1);        //算法初始化操作，指定半径为15，领域内最小数据点个数为3，（在程序中已指定数据维度为2）
-//    connManager.close_connect();
+    dbscan_cluster.init(&connManager, sql_select, 10, 1);        //算法初始化操作，指定半径为10，领域内最小数据点个数为1，（在程序中已指定数据维度为1）
 
-    string output_file_name = "D:/experiment_cluster_" +  to_string(test_round) + "_" + file_name + ".txt";
+    string output_file_name = "D:/experiment_cluster_" + to_string(test_round) + "_" + file_name + ".txt";
     dbscan_cluster.DoDBSCANRecursive();                    //执行聚类算法
-    dbscan_cluster.WriteToFile(output_file_name.c_str());//写执行后的结果写入文件
-
+    dbscan_cluster.WriteToMysql(test_round, file_name);    //将聚类结果写入数据库
 
     connManager.close_connect();
 }
