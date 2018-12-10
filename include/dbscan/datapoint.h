@@ -6,6 +6,7 @@
 #define DONGMENDBAUTOTEST_DATAPOINT_H
 
 #include <vector>
+#include <string>
 
 using namespace std;
 
@@ -20,9 +21,19 @@ private:
     bool isKey;                        //是否核心对象
     bool visited;                    //是否已访问
     vector<unsigned long> arrivalPoints;    //领域数据点id列表
+
+    string sno;
+    string sname;
+
 public:
     DataPoint();                                                    //默认构造函数
     DataPoint(unsigned long dpID, double *dimension, bool isKey);    //构造函数
+    DataPoint(string sno, string sname) : sno(sno), sname(sname){};
+
+    string getSno();
+    int setSno(string sno);
+    string getSname();
+    int setSname(string sname);
 
     unsigned long GetDpId();                //GetDpId方法
     void SetDpId(unsigned long dpID);        //SetDpId方法

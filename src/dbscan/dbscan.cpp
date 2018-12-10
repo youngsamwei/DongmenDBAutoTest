@@ -5,8 +5,27 @@
 #include <fstream>
 #include <iosfwd>
 #include <math.h>
+#include <iomanip>
+#include <Utils.h>
 #include "dbscan/dbscan.h"
 
+/*
+ * 初始化数据.
+ * */
+bool DBSCANClusterAnalysis::init(DataPointMysqlConnManager *connManager, string &sql_select, double radius, int minPTs){
+    this->radius = radius;        //设置半径
+    this->minPTs = minPTs;        //设置领域最小数据个数
+    this->dimNum = DIME_NUM;    //设置数据维度
+
+    connManager->getDataPoints(sql_select, &dadaSets);
+
+    dataNum =dadaSets.size();            //设置数据对象集合大小
+    for(unsigned long i=0; i<dataNum;i++)
+    {
+        SetArrivalPoints(dadaSets[i]);            //计算数据点领域内对象
+    }
+    return true;
+};
 /*
 函数：聚类初始化操作
 说明：将数据文件名，半径，领域最小数据个数信息写入聚类算法类，读取文件，把数据信息读入写进算法类数据集合中
@@ -70,8 +89,9 @@ bool DBSCANClusterAnalysis::WriteToFile(char* fileName )
     ofstream of1(fileName);                                //初始化文件输出流
     for(unsigned long i=0; i<dataNum;i++)                //对处理过的每个数据点写入文件
     {
+        of1<<dadaSets[i].getSno()<<'\t'<<dadaSets[i].getSname()<<'\t';
         for(int d=0; d<DIME_NUM ; d++)                    //将维度信息写入文件
-            of1<<dadaSets[i].GetDimension()[d]<<'\t';
+            of1<<setiosflags(ios::fixed)<<setprecision(0)<<dadaSets[i].GetDimension()[d]<<'\t';
         of1 << dadaSets[i].GetClusterId() <<endl;        //将所属簇ID写入文件
     }
     of1.close();    //关闭输出文件流
@@ -121,7 +141,7 @@ bool DBSCANClusterAnalysis::DoDBSCANRecursive()
         //cout << "孤立点\T" << i << endl;
     }
 
-    cout <<"共聚类" <<clusterId<<"个"<< endl;        //算法完成后，输出聚类个数
+    cout <<Utils::ws2s(L"共聚类") <<clusterId<<Utils::ws2s(L"个")<< endl;        //算法完成后，输出聚类个数
     return true;    //返回
 }
 

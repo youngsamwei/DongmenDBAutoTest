@@ -39,7 +39,6 @@ void MySQLConnManager::close_connect()
     mysql_close(&m_mysql);
 }
 
-
 bool MySQLConnManager::execute_sql(const string& sql)
 {
     return 0 == mysql_real_query(&m_mysql, sql.c_str(), sql.size());
@@ -48,7 +47,6 @@ bool MySQLConnManager::execute_sql(const string& sql)
 bool MySQLConnManager::select_db(const string &dbname){
     return mysql_select_db(&m_mysql, dbname.c_str());
 }
-
 
 bool MySQLConnManager::select_data(const string& sql, vector<vector<string> >& result_matrix)
 {
@@ -94,3 +92,7 @@ bool MySQLConnManager::connect()
 {
     return NULL != mysql_real_connect(&m_mysql, m_host.c_str(), m_user.c_str(), m_pw.c_str(), m_db.c_str(), m_port, NULL, 0);
 }
+
+MYSQL_RES *MySQLConnManager::store_result(){
+    return mysql_store_result(&m_mysql);
+};

@@ -8,7 +8,6 @@
 #include "test_execution.h"
 
 int main(int argc, char *argv[]) {
-    locale::global(locale(""));
     string dbuser = "root";//mysql账号名
     string dbpasswd = "123456"; //mysql账号密码
     string dbip = "127.0.0.1";

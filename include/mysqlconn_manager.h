@@ -42,6 +42,8 @@ public:
 
     string get_error_msg();
 
+    MYSQL_RES *store_result();
+
 private:
     bool connect();
 
