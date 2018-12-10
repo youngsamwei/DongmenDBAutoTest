@@ -109,7 +109,7 @@ ul_int SimHash::simhash_file(const char *fileName) {
     fstream f(fileName);//创建一个fstream文件流对象
     vector<char *> words; //创建一个vector<string>对象
     string line; //保存读入的每一行
-    char seps[] = " ;#　\t.()*:,!=";//空格,分号，#，tab键
+    char seps[] = " ;#　\t.()*:,!=<>/'\\\"";//空格,分号，#，tab键
     while (getline(f, line))//会自动把\n换行符去掉
     {
         char *token;

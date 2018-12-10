@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <Utils.h>
+#include <test_simhash_experiment.h>
 #include "test_execution.h"
 
 int main(int argc, char *argv[]) {
@@ -73,11 +74,11 @@ int main(int argc, char *argv[]) {
     experiment_config_3.exp_files[L"exp_01_05_delete.c"] = L"/src_experiment/exp_01_stmt_parser/exp_01_05_delete.c";
     experiment_config_3.exp_files[L"exp_07_06_delete.c"] = L"/src_experiment/exp_07_physical_operate/exp_07_06_delete.c";
 
-    TestExecution te(&experiment_config_2);
+    TestSimhashExperiment tse(&experiment_config_2);
 //    te.run(exp_name, exp_target, exp_dir_name, exp_files, work_dir, dongmendb_src_dir, output_dir);
-    te.batchrun(&experiment_config_2);
+    tse.run_simhash(&experiment_config_2);
 
-    te.batchrun(&experiment_config_3);
+    tse.run_simhash(&experiment_config_3);
 
     connManager.close_connect();
 }

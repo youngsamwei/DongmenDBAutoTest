@@ -106,8 +106,7 @@ private:
     char *rand_str(size_t len);
     char *rand_str();
     int copyDir(wstring src_dir,wstring dest_dir);
-    /*在指定的文件夹中查找以name结尾的文件名称，应对云班课导出文件改名问题。只查找dir指定的文件夹，不查找更深层次的文件夹*/
-    wstring findFileNameEndWith(wstring dir, wstring name);
+
     int  removeDirW(const wchar_t*  dirPath);
     /*执行cmd命令，并将执行结果写入result*/
     int executeCMD(wstring cmd, ofstream& xout);

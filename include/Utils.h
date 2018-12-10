@@ -16,8 +16,9 @@ public:
     static wstring  s2ws(const string& s);
 
     static string FormatString(const char *lpcszFormat,...);
-    static wstring FormatWstring(const wchar_t *lpcwszFormat,...);
+    static wstring FormatWString(const wchar_t *lpcwszFormat,...);
 
+    static wstring findFileNameEndWith(wstring dir, wstring name);
 };
 
 

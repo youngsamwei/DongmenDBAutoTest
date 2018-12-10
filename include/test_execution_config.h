@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <cstring>
 #include <mysqlconn_manager.h>
+#include <map>
 
 using namespace std;
 

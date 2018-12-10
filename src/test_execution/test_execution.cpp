@@ -214,7 +214,7 @@ int TestExecution::copy_exp_to_dongmendb(wstring exp_dir_name, wstring dest_dir_
     map<wstring, wstring>::iterator iter;
     wstring slash = L"/";
     for (iter = exp_files.begin(); iter != exp_files.end(); iter++) {
-        wstring find_file = findFileNameEndWith(exp_dir_name, iter->first);
+        wstring find_file = Utils::findFileNameEndWith(exp_dir_name, iter->first);
         if (find_file.length() == 0) {
             /*若没有找到需要复制的文件*/
             xout << Utils::ws2s(L"缺少文件:") << Utils::ws2s(iter->first) << endl;
@@ -238,7 +238,7 @@ int TestExecution::copy_exp_to_dongmendb(wstring exp_dir_name, wstring dest_dir_
     map<wstring, wstring>::iterator iter;
     wstring slash = L"/";
     for (iter = exp_files.begin(); iter != exp_files.end(); iter++) {
-        wstring find_file = findFileNameEndWith(exp_dir_name, iter->first);
+        wstring find_file = Utils::findFileNameEndWith(exp_dir_name, iter->first);
         if (find_file.length() == 0) {
             /*若没有找到需要复制的文件*/
             cout << Utils::ws2s(L"缺少文件:") << Utils::ws2s(iter->first) << endl;
@@ -430,46 +430,6 @@ int TestExecution::copyDir(wstring src_dir, wstring dest_dir) {
     }
     return resultone;
 }
-
-wstring TestExecution::findFileNameEndWith(wstring dir, wstring name) {
-    struct _wfinddata_t fb;   //查找相同属性文件的存储结构体
-    wstring path;
-    wstring resultone = L"";
-
-    long handle;
-    int noFile;             //对系统隐藏文件的处理标记
-
-    noFile = 0;
-    handle = 0;
-
-    path = dir + L"/*";
-    //制作路径
-
-    handle = _wfindfirst(path.c_str(), &fb);
-    //找到第一个匹配的文件
-    if (handle != 0) {
-        //当可以继续找到匹配的文件，继续执行
-        while (0 == _wfindnext(handle, &fb)) {
-            //属性值为16，则说明是文件夹
-            if (fb.attrib != 16) {
-                wstring fb_name = fb.name;
-                if (fb_name.length() >= name.length()) {
-                    wstring px = fb_name.substr(fb_name.length() - name.length(), fb_name.length());
-                    int r = wcscmp(px.c_str(), name.c_str());
-                    if (r == 0) {
-                        resultone = fb.name;
-                        break;
-                    }
-                }
-            }
-
-        }
-        //关闭文件夹。找这个函数找了很久，标准c中用的是closedir
-        //经验介绍：一般产生Handle的函数执行后，都要进行关闭的动作。
-        _findclose(handle);
-    }
-    return resultone;
-};
 
 int TestExecution::removeDirW(const wchar_t *dirPath) {
 
