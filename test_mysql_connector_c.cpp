@@ -11,17 +11,21 @@
 
 using namespace std;
 
+/* wstring 转换为 char * 的宏*/
+#define WS2CHAR(x)  (Utils::ws2s(x).c_str())
+/* wstring 转换为 string*/
+#define WS2S(x)  (Utils::ws2s(x))
 
 int test_simhash(){
-    char *a = "我";
-    char *b = "喜欢";
-    char *c = "吃";
-    char *d = "鸭梨";
+    const char *a = WS2CHAR(L"我");
+    const char *b = WS2CHAR(L"喜欢");
+    const char *c = WS2CHAR(L"吃");
+    const char *d = WS2CHAR(L"鸭梨");
 
-    char *x = "我";
-    char *y = "爱";
-    char *z = "吃";
-    char *w = "梨";
+    const char *x = WS2CHAR(L"我");
+    const char *y = WS2CHAR(L"爱");
+    const char *z = WS2CHAR(L"吃");
+    const char *w = WS2CHAR(L"梨");
 
     const char *test1[4];
     const char *test2[4];
@@ -43,8 +47,8 @@ int test_simhash_file(){
     wstring file1 = L"F:\\云班课作业 2018\\计算机16-1，2，3-数据库系统-课程设计_实验2_实现u_第7次\\201401060223_孙仕敏/01-exp_01_04_update.c";
     wstring file2 = L"F:\\云班课作业 2018\\计算机16-1，2，3-数据库系统-课程设计_实验2_实现u_第7次\\201501030413_毛锟/04-exp_01_04_update.c";
 
-    string char_file1 = Utils::ws2s(file1);
-    string char_file2 = Utils::ws2s(file2);
+    string char_file1 = WS2S(file1);
+    string char_file2 = WS2S(file2);
     ul_int hash1 = SimHash::simhash_file(char_file1.c_str());
     ul_int hash2 = SimHash::simhash_file(char_file2.c_str());
     float similarity = 0.0f;
