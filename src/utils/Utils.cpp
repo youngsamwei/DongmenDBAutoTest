@@ -1,12 +1,13 @@
 //
 // Created by sam on 2018/12/8.
 //
-
+#include <afxres.h>
 #include <memory.h>
 #include <memory>
 #include <cstdarg>
 #include <io.h>
 #include "Utils.h"
+
 
 string Utils::ws2s(const wstring &ws) {
     string curLocale = setlocale(LC_ALL, NULL); // curLocale = "C";
@@ -120,3 +121,99 @@ wstring Utils::findFileNameEndWith(wstring dir, wstring name) {
     }
     return resultone;
 };
+
+
+
+int Utils::copyDir(wstring src_dir, wstring dest_dir) {
+    struct _wfinddata_t fb;   //查找相同属性文件的存储结构体
+    wstring path;
+    wstring dest_path;
+
+    long handle;
+    int resultone = 0;
+    int noFile;             //对系统隐藏文件的处理标记
+
+    noFile = 0;
+    handle = 0;
+
+    path = src_dir + L"/*";
+    //制作路径
+
+    handle = _wfindfirst(path.c_str(), &fb);
+    //找到第一个匹配的文件
+    if (handle != 0) {
+        //当可以继续找到匹配的文件，继续执行
+        while (0 == _wfindnext(handle, &fb)) {
+            //windows下，常有个系统文件，名为“..”,对它不做处理
+            noFile = wcscmp(fb.name, L"..");
+
+            if (0 != noFile) {
+                //制作完整路径
+                dest_path = dest_dir + L"/" + fb.name;
+                path = src_dir + L"/" + fb.name;
+
+                //属性值为16，则说明是文件夹，迭代
+                if (fb.attrib == 16) {
+                    _wmkdir(dest_path.c_str());
+                    copyDir(path, dest_path);
+                }  //非文件夹的文件，直接复制。对文件属性值的情况没做详细调查，可能还有其他情况。
+                else {
+                    CopyFileW(path.c_str(), dest_path.c_str(), FALSE);
+                }
+            }
+        }
+        //关闭文件夹。找这个函数找了很久，标准c中用的是closedir
+        //经验介绍：一般产生Handle的函数执行后，都要进行关闭的动作。
+        _findclose(handle);
+    }
+    return resultone;
+}
+
+int Utils::removeDirW(const wchar_t *dirPath) {
+
+    struct _wfinddata_t fb;   //查找相同属性文件的存储结构体
+
+    wchar_t path[250];
+    long handle;
+    int resultone;
+    int noFile;            //对系统隐藏文件的处理标记
+
+    noFile = 0;
+    handle = 0;
+
+    //制作路径
+    wcscpy(path, dirPath);
+    wcscat(path, L"/*");
+
+    handle = _wfindfirst(path, &fb);
+    //找到第一个匹配的文件
+    if (handle != 0) {
+        //当可以继续找到匹配的文件，继续执行
+        while (0 == _wfindnext(handle, &fb)) {
+            //windows下，常有个系统文件，名为“..”,对它不做处理
+            noFile = wcscmp(fb.name, L"..");
+
+            if (0 != noFile) {
+                //制作完整路径
+                memset(path, 0, sizeof(path));
+                wcscpy(path, dirPath);
+                wcscat(path, L"/");
+                wcscat(path, fb.name);
+                //属性值为16，则说明是文件夹，迭代
+                if (fb.attrib == 16) {
+                    removeDirW(path);
+                }
+                    //非文件夹的文件，直接删除。对文件属性值的情况没做详细调查，可能还有其他情况。
+                else {
+                    _wremove(path);
+                }
+            }
+        }
+        //关闭文件夹，只有关闭了才能删除。找这个函数找了很久，标准c中用的是closedir
+        //经验介绍：一般产生Handle的函数执行后，都要进行关闭的动作。
+        _findclose(handle);
+    }
+    //移除文件夹
+    resultone = _wrmdir(dirPath);
+    return resultone;
+}

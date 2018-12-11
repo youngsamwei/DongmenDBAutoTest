@@ -198,13 +198,13 @@ int TestExecution::init_dongmendb(wstring work_dir, wstring dir_name) {
 int TestExecution::clear_dongmendb(wstring work_dir, wstring dir_name) {
     cout << "deleting " << Utils::ws2s(dir_name);
     _wchdir(work_dir.c_str());
-    removeDirW(dir_name.c_str());
+    Utils::removeDirW(dir_name.c_str());
     return 0;
 };
 
 int TestExecution::copy_dongmendb(wstring from_dir_name, wstring dest_dir_name) {
 
-    return copyDir(from_dir_name.c_str(), dest_dir_name.c_str());
+    return Utils::copyDir(from_dir_name.c_str(), dest_dir_name.c_str());
 };
 
 int TestExecution::copy_exp_to_dongmendb(wstring exp_dir_name, wstring dest_dir_name,
@@ -259,7 +259,7 @@ int TestExecution::cmd_cmake_refresh(wstring output_dir, wstring project_dir) {
 
     wstring cmd = cmake_exe + cmake_build_type + cmake_files + project_dir;
 
-    removeDirW(output_dir.c_str());
+    Utils::removeDirW(output_dir.c_str());
     _wmkdir(output_dir.c_str());
     _wchdir(output_dir.c_str());
 
@@ -385,100 +385,6 @@ char *TestExecution::rand_str() {
     return rand_str(SIZE_RAND_STR_LEN);
 }
 
-
-int TestExecution::copyDir(wstring src_dir, wstring dest_dir) {
-    struct _wfinddata_t fb;   //查找相同属性文件的存储结构体
-    wstring path;
-    wstring dest_path;
-
-    long handle;
-    int resultone = 0;
-    int noFile;             //对系统隐藏文件的处理标记
-
-    noFile = 0;
-    handle = 0;
-
-    path = src_dir + L"/*";
-    //制作路径
-
-    handle = _wfindfirst(path.c_str(), &fb);
-    //找到第一个匹配的文件
-    if (handle != 0) {
-        //当可以继续找到匹配的文件，继续执行
-        while (0 == _wfindnext(handle, &fb)) {
-            //windows下，常有个系统文件，名为“..”,对它不做处理
-            noFile = wcscmp(fb.name, L"..");
-
-            if (0 != noFile) {
-                //制作完整路径
-                dest_path = dest_dir + L"/" + fb.name;
-                path = src_dir + L"/" + fb.name;
-
-                //属性值为16，则说明是文件夹，迭代
-                if (fb.attrib == 16) {
-                    _wmkdir(dest_path.c_str());
-                    copyDir(path, dest_path);
-                }  //非文件夹的文件，直接复制。对文件属性值的情况没做详细调查，可能还有其他情况。
-                else {
-                    CopyFileW(path.c_str(), dest_path.c_str(), FALSE);
-                }
-            }
-        }
-        //关闭文件夹。找这个函数找了很久，标准c中用的是closedir
-        //经验介绍：一般产生Handle的函数执行后，都要进行关闭的动作。
-        _findclose(handle);
-    }
-    return resultone;
-}
-
-int TestExecution::removeDirW(const wchar_t *dirPath) {
-
-    struct _wfinddata_t fb;   //查找相同属性文件的存储结构体
-
-    wchar_t path[250];
-    long handle;
-    int resultone;
-    int noFile;            //对系统隐藏文件的处理标记
-
-    noFile = 0;
-    handle = 0;
-
-    //制作路径
-    wcscpy(path, dirPath);
-    wcscat(path, L"/*");
-
-    handle = _wfindfirst(path, &fb);
-    //找到第一个匹配的文件
-    if (handle != 0) {
-        //当可以继续找到匹配的文件，继续执行
-        while (0 == _wfindnext(handle, &fb)) {
-            //windows下，常有个系统文件，名为“..”,对它不做处理
-            noFile = wcscmp(fb.name, L"..");
-
-            if (0 != noFile) {
-                //制作完整路径
-                memset(path, 0, sizeof(path));
-                wcscpy(path, dirPath);
-                wcscat(path, L"/");
-                wcscat(path, fb.name);
-                //属性值为16，则说明是文件夹，迭代
-                if (fb.attrib == 16) {
-                    removeDirW(path);
-                }
-                    //非文件夹的文件，直接删除。对文件属性值的情况没做详细调查，可能还有其他情况。
-                else {
-                    _wremove(path);
-                }
-            }
-        }
-        //关闭文件夹，只有关闭了才能删除。找这个函数找了很久，标准c中用的是closedir
-        //经验介绍：一般产生Handle的函数执行后，都要进行关闭的动作。
-        _findclose(handle);
-    }
-    //移除文件夹
-    resultone = _wrmdir(dirPath);
-    return resultone;
-}
 
 void find_process_and_kill(const char *strFilename) {
     HANDLE hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);

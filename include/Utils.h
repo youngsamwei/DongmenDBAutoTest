@@ -19,6 +19,8 @@ public:
     static wstring FormatWString(const wchar_t *lpcwszFormat,...);
 
     static wstring findFileNameEndWith(wstring dir, wstring name);
+    static int copyDir(wstring src_dir, wstring dest_dir);
+    static int removeDirW(const wchar_t *dirPath);
 };
 
 

@@ -105,9 +105,7 @@ private:
     /*产生指定长度的随机字符串, 默认长度32*/
     char *rand_str(size_t len);
     char *rand_str();
-    int copyDir(wstring src_dir,wstring dest_dir);
 
-    int  removeDirW(const wchar_t*  dirPath);
     /*执行cmd命令，并将执行结果写入result*/
     int executeCMD(wstring cmd, ofstream& xout);
 
