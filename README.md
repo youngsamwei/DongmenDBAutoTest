@@ -1,0 +1,2 @@
+# DongmenDBAutoTest
+DongmenDB学生实验作业的批量测试项目。检测内容包括测试用例检测和作业相似度检测。
