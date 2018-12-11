@@ -2,14 +2,33 @@
 // Created by sam on 2018/12/8.
 //
 #include <afxres.h>
-#include <memory.h>
 #include <memory>
 #include <cstdarg>
 #include <io.h>
+#include <ctime>
 #include "Utils.h"
 
+/*给Utils的静态成员变量赋值*/
+const char *Utils::CCH = "_0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
 
-string WS2S(const wstring &ws) {
+char *Utils::rand_str(size_t len) {
+    srand((unsigned) time(NULL));
+    char *ch = (char *) malloc((len + 1) * sizeof(char *));
+    memset(ch, 0, len + 1);
+    for (int i = 0; i < len; ++i) {
+        int x = rand();
+        int l = (strlen(CCH) - 1);
+        int p = RAND_MAX / l;
+        x = x / p;
+
+        ch[i] = CCH[x];
+    }
+    ch[len + 1] = '\0';
+    return ch;
+}
+
+
+string Utils::ws2s(const wstring &ws) {
     string curLocale = setlocale(LC_ALL, NULL); // curLocale = "C";
 
     setlocale(LC_ALL, "chs");

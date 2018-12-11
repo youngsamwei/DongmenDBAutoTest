@@ -56,7 +56,7 @@ int TestExecution::batchrun(TestExecutionConfig *config) {
 
 int TestExecution::run(wstring exp_dir_name) {
     /*随机生成的字符串，作为临时文件的后缀*/
-    wstring str = Utils::s2ws(string(rand_str(10)));
+    wstring str = Utils::s2ws(string(Utils::rand_str(10)));
     wstring current_dir = config->workDir + L"/" + project_name + L"_" + str;
     wstring build_dir = current_dir + L"/" + cmake_build_dir;
     wstring bin_dir = current_dir + L"/bin";
@@ -337,13 +337,11 @@ int TestExecution::store_test_execution_result(string sno, string sname, string 
 };
 
 int TestExecution::update_test_execution_result(string sno, string sname, string expname, int round, string result) {
-//    string update = Utils::string_format("update test_execution_cases_result set result = '%s' where sno = '%s' and expname = '%s' and round = %i;",
-//                                         result, sno, expname, round);
 
-    string update =    string("update test_execution_cases_result set ")
-                    + string (" result = '") + result + string("' ")
+    string update = string("update test_execution_cases_result set ")
+                    + string(" result = '") + result + string("' ")
                     + string(" where ")
-                    + string (" sno = '") + sno + "' and "
+                    + string(" sno = '") + sno + "' and "
                     + string(" expname = '") + expname + string("' and ")
                     + string(" round = ") + to_string(round) + string("; ");
     cout<<endl<<update<<endl;
@@ -354,24 +352,8 @@ int TestExecution::update_test_execution_result(string sno, string sname, string
     return 0;
 }
 
-char *TestExecution::rand_str(size_t len) {
-    srand((unsigned) time(NULL));
-    char *ch = (char *) malloc((len + 1) * sizeof(char *));
-    memset(ch, 0, len + 1);
-    for (int i = 0; i < len; ++i) {
-        int x = rand();
-        int l = (strlen(CCH) - 1);
-        int p = RAND_MAX / l;
-        x = x / p;
-
-        ch[i] = CCH[x];
-    }
-    ch[len + 1] = '\0';
-    return ch;
-}
-
 char *TestExecution::rand_str() {
-    return rand_str(SIZE_RAND_STR_LEN);
+    return Utils::rand_str(SIZE_RAND_STR_LEN);
 }
 
 

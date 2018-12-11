@@ -18,6 +18,12 @@ using namespace std;
 
 class Utils{
 public:
+    static const char *CCH;
+
+public:
+    /*产生指定长度的随机字符串, 默认长度32*/
+    static char *rand_str(size_t len);
+
     static string  ws2s(const wstring& ws);
     static wstring  s2ws(const string& s);
 
@@ -28,6 +34,7 @@ public:
     static int copyDir(wstring src_dir, wstring dest_dir);
     static int removeDirW(const wchar_t *dirPath);
 };
+
 
 
 #endif //DONGMENDBAUTOTEST_UTILS_H

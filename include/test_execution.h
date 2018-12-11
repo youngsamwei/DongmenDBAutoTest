@@ -28,7 +28,6 @@ class TestExecution {
     wstring cmake_others_parameters = L" -- -j 2";
     wstring cmake_exe = L"cmake.exe ";
     const int SIZE_RAND_STR_LEN = 32; //生成32 + 1位C Style字符串
-    const char *CCH = "_0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
 
 
 public:
@@ -96,8 +95,7 @@ protected:
 
 
 private:
-    /*产生指定长度的随机字符串, 默认长度32*/
-    char *rand_str(size_t len);
+
     char *rand_str();
 
     /*执行cmd命令，并将执行结果写入result*/
