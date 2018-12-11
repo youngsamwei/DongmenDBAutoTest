@@ -1,16 +1,12 @@
 //
 // Created by sam on 2018/11/3.
 //
-#include <ctime>
-#include <io.h>
-#include <cstring>
-#include "test_execution.h"
-#include <afxres.h>
+
 #include <iostream>
 #include <assert.h>
-#include <tlhelp32.h>
-#include <unistd.h>
-#include "monitor_test_cases_execution.h"
+#include "test_execution.h"
+#include <monitor_test_cases_execution.h>
+
 #include "Utils.h"
 
 using namespace std;

@@ -4,12 +4,11 @@
 
 
 #include <io.h>
+#include <iostream>
 #include "test_simhash_experiment.h"
-#include <test_execution_config.h>
-#include <map>
 #include <Utils.h>
 #include <simhash.h>
-#include <iostream>
+
 
 TestSimhashExperiment::TestSimhashExperiment(TestExecutionConfig *config) {
     this->config = config;
