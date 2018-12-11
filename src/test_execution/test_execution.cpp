@@ -10,7 +10,7 @@
 #include <assert.h>
 #include <tlhelp32.h>
 #include <unistd.h>
-
+#include "monitor_test_cases_execution.h"
 #include "Utils.h"
 
 using namespace std;
@@ -385,61 +385,6 @@ char *TestExecution::rand_str() {
     return rand_str(SIZE_RAND_STR_LEN);
 }
 
-
-void find_process_and_kill(const char *strFilename) {
-    HANDLE hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-    if (hProcessSnap == INVALID_HANDLE_VALUE) {
-        return;
-    }
-
-    PROCESSENTRY32 pe32 = {0};
-    pe32.dwSize = sizeof(PROCESSENTRY32);
-    if (Process32First(hProcessSnap, &pe32)) {
-        do {
-
-            if (strcmp(pe32.szExeFile, strFilename) == 0) {
-                HANDLE hprocess = OpenProcess(PROCESS_ALL_ACCESS, false, pe32.th32ProcessID);
-                TerminateProcess(hprocess, 0);
-                CloseHandle(hprocess);
-                break;
-            }
-        } while (Process32Next(hProcessSnap, &pe32));
-    }
-
-    CloseHandle(hProcessSnap);
-}
-
-/*监控执行测试用例的exe程序是否出现异常导致程序无法终止。
- * 参数：
- * exe_file_name ：被监控的进程名称
- * timeout：超时阈值，以秒为单位*/
-
-void monitor_test_cases_execution(string exe_file_name, int timeout, int &recieving_chars_count) {
-
-    int prev_receiving_chars = -1;
-    clock_t prev_time;
-    prev_time = clock();
-    while (recieving_chars_count >= 0) {
-        sleep(1);
-        if (prev_receiving_chars == recieving_chars_count) {
-            if ((clock() - prev_time) > timeout * 1000) {
-                find_process_and_kill(exe_file_name.c_str());
-                /*终止进程*/
-                cout << endl << exe_file_name << " will be stopped." << endl;
-                break;
-            }
-
-        } else {
-            prev_time = clock();
-            prev_receiving_chars = recieving_chars_count;
-        }
-
-    }
-
-    /*关闭弹出的appcrash窗口，如果有的话*/
-    const char *werfault = "WerFault.exe";
-    find_process_and_kill(werfault);
-}
 
 int TestExecution::executeCMD(wstring cmd, ofstream &xout, string contents) {
     char buf_ps[1024] = {0};
