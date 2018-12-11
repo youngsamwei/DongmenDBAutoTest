@@ -44,18 +44,12 @@ public:
      * 2)文件内容是每个阶段的命令输出。
      *
      * */
-    int run(wstring exp_name, wstring exp_target, wstring exp_dir_name,
-            std::map<wstring, wstring> exp_files,
-            wstring work_dir, wstring dongmendb_src_dir,
-            wstring output_dir);
+    int run(wstring exp_dir_name);
 
     /*执行实验测试
      * exp_dir_name 指向多个学生的实验任务，每个学生一个文件夹
      * */
-    int batchrun(wstring exp_name, wstring exp_target, wstring exp_dir_name,
-                 std::map<wstring, wstring> exp_files,
-                 wstring work_dir, wstring dongmendb_src_dir,
-                 wstring output_dir);
+    int batchrun();
 
     int batchrun(TestExecutionConfig *config);
 

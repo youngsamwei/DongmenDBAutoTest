@@ -15,20 +15,16 @@ TestExecution::TestExecution(TestExecutionConfig *config){
     this->config = config;
 }
 
-int TestExecution::batchrun(wstring exp_name, wstring exp_target, wstring exp_dir_name,
-                            std::map<wstring, wstring> exp_files,
-                            wstring work_dir, wstring dongmendb_src_dir,
-                            wstring output_dir) {
+int TestExecution::batchrun() {
 
     struct _wfinddata_t fb;   //查找相同属性文件的存储结构体
 
-    init_output_dir(output_dir);
-
+    init_output_dir(config->outputDir);
     long handle;
     int resultone = 0;
     int noFile;            //对系统隐藏文件的处理标记
 
-    handle = _wfindfirst((exp_dir_name + L"/*").c_str(), &fb);
+    handle = _wfindfirst((config->expDirName + L"/*").c_str(), &fb);
     //找到第一个匹配的文件
     if (handle != 0) {
         //当可以继续找到匹配的文件，继续执行
@@ -37,11 +33,11 @@ int TestExecution::batchrun(wstring exp_name, wstring exp_target, wstring exp_di
             noFile = wcscmp(fb.name, L"..");
 
             if (0 != noFile) {
-                //属性值为16，则说明是文件夹，调用任务处理
+                //属性值为16，则说明是文件夹
                 if (fb.attrib == 16) {
-                    wstring dir = exp_dir_name + L"/" + fb.name;
-                    run(exp_name, exp_target, dir,
-                        exp_files, work_dir, dongmendb_src_dir, output_dir);
+                    /* 处理每个学生的实验作业文件夹*/
+                    wstring exp_dir_name = config->expDirName + L"/" + fb.name;
+                    run( exp_dir_name);
                 }
 
             }
@@ -55,24 +51,21 @@ int TestExecution::batchrun(wstring exp_name, wstring exp_target, wstring exp_di
 
 int TestExecution::batchrun(TestExecutionConfig *config) {
     this->config = config;
-    return batchrun(config->expName, config->expTarget, config->expDirName, config->exp_files, config->workDir,
-                    config->dongmendbSrcDir, config->outputDir);
+    return batchrun();
 };
 
-int TestExecution::run(wstring exp_name, wstring exp_target, wstring exp_dir_name,
-                       std::map<wstring, wstring> exp_files,
-                       wstring work_dir, wstring dongmendb_src_dir,
-                       wstring output_dir) {
+int TestExecution::run(wstring exp_dir_name) {
+    /*随机生成的字符串，作为临时文件的后缀*/
     wstring str = Utils::s2ws(string(rand_str(10)));
-    wstring current_dir = work_dir + L"/" + project_name + L"_" + str;
+    wstring current_dir = config->workDir + L"/" + project_name + L"_" + str;
     wstring build_dir = current_dir + L"/" + cmake_build_dir;
     wstring bin_dir = current_dir + L"/bin";
 
     wstring result = L"";
 
-    int c = init_dongmendb(work_dir, current_dir);
+    int c = init_dongmendb(config->workDir, current_dir);
 
-    copy_dongmendb(dongmendb_src_dir, current_dir);
+    copy_dongmendb(config->dongmendbSrcDir, current_dir);
 
     int pos = exp_dir_name.find_last_of(L"/");
     if (pos < 0) {
@@ -87,27 +80,27 @@ int TestExecution::run(wstring exp_name, wstring exp_target, wstring exp_dir_nam
 
     int ret;
     /*复制文件开始*/
-    string copy_log_file_name = Utils::ws2s(output_dir + L"/" + exp_student_name) + "_copy_files_failed.txt";
+    string copy_log_file_name = Utils::ws2s(config->outputDir + L"/" + exp_student_name) + "_copy_files_failed.txt";
     if (config->outputStyle == OUTPUT_FILE) {
         xout.open(copy_log_file_name);
         assert(xout.is_open());
         /*复制实验任务的文件:*/
-        ret = copy_exp_to_dongmendb(exp_dir_name, current_dir, exp_files, xout);
+        ret = copy_exp_to_dongmendb(exp_dir_name, current_dir, config->exp_files, xout);
         xout.close();
         xout.clear();
     }else{
         /*输出到console*/
-        ret = copy_exp_to_dongmendb(exp_dir_name, current_dir, exp_files);
+        ret = copy_exp_to_dongmendb(exp_dir_name, current_dir, config->exp_files);
     }
     if (ret < 0) {
-        clear_dongmendb(work_dir, current_dir);
+        clear_dongmendb(config->workDir, current_dir);
         result = L"缺少实验文件.";
-        store_test_execution_result(Utils::ws2s(sno), Utils::ws2s(sname), Utils::ws2s(exp_name), config->round, Utils::ws2s(result));
+        store_test_execution_result(Utils::ws2s(sno), Utils::ws2s(sname), Utils::ws2s(config->expName), config->round, Utils::ws2s(result));
 
         /*若文件不存在*/
         return -1;
     } else {
-        string copy_log_file_name_passed = Utils::ws2s(output_dir + L"/" + exp_student_name) + "_copy_files_passed.txt";
+        string copy_log_file_name_passed = Utils::ws2s(config->outputDir + L"/" + exp_student_name) + "_copy_files_passed.txt";
         rename(copy_log_file_name.c_str(), copy_log_file_name_passed.c_str());
 
     }
@@ -118,37 +111,37 @@ int TestExecution::run(wstring exp_name, wstring exp_target, wstring exp_dir_nam
     cmd_cmake_clean(build_dir);
 
     /*build开始*/
-    string build_log_file_name = Utils::ws2s(output_dir + L"/" + exp_student_name) + "_build_failed.txt";
+    string build_log_file_name = Utils::ws2s(config->outputDir + L"/" + exp_student_name) + "_build_failed.txt";
     if (config->outputStyle == OUTPUT_FILE) {
         xout.open(build_log_file_name);
 
-        ret = cmd_cmake_build(build_dir, exp_target, xout);
+        ret = cmd_cmake_build(build_dir, config->expTarget, xout);
         xout.close();
         xout.clear();
     } else{
-        ret = cmd_cmake_build(build_dir, exp_target);
+        ret = cmd_cmake_build(build_dir, config->expTarget);
     }
     /*检测exe文件是否产生，若产生则编译成功*/
-    wstring bin_exe_name = bin_dir + L"/" + exp_target + L".exe";
+    wstring bin_exe_name = bin_dir + L"/" + config->expTarget + L".exe";
     int exists = _waccess(bin_exe_name.c_str(), F_OK);
     if (exists != 0) {
-        clear_dongmendb(work_dir, current_dir);
+        clear_dongmendb(config->workDir, current_dir);
         result = L" 编译错误.";
-        store_test_execution_result(Utils::ws2s(sno), Utils::ws2s(sname), Utils::ws2s(exp_name), config->round, Utils::ws2s(result));
+        store_test_execution_result(Utils::ws2s(sno), Utils::ws2s(sname), Utils::ws2s(config->expName), config->round, Utils::ws2s(result));
         return -1;
     } else {
-        string build_log_file_name_passed = Utils::ws2s(output_dir + L"/" + exp_student_name) + "_build_passed.txt";
+        string build_log_file_name_passed = Utils::ws2s(config->outputDir + L"/" + exp_student_name) + "_build_passed.txt";
         rename(build_log_file_name.c_str(), build_log_file_name_passed.c_str());
     }
     /*build结束*/
 
     result = L" 测试失败.";
-    store_test_execution_result(Utils::ws2s(sno), Utils::ws2s(sname), Utils::ws2s(exp_name), config->round, Utils::ws2s(result));
+    store_test_execution_result(WS2S(sno), Utils::ws2s(sname), Utils::ws2s(config->expName), config->round, Utils::ws2s(result));
 
     string test_cases_execution_log_file_name =
-            Utils::ws2s(output_dir + L"/" + exp_student_name) + "_test_cases_execution_failed.txt";
+            Utils::ws2s(config->outputDir + L"/" + exp_student_name) + "_test_cases_execution_failed.txt";
     string test_cased_execution_passed_flag = "[  PASSED  ]";
-    wstring exe_file_name = exp_target + L".exe";
+    wstring exe_file_name = config->expTarget + L".exe";
     if (config->outputStyle == OUTPUT_FILE) {
         xout.open(test_cases_execution_log_file_name);
         ret = cmd_exp_target(bin_dir, exe_file_name, xout, test_cased_execution_passed_flag);
@@ -159,15 +152,15 @@ int TestExecution::run(wstring exp_name, wstring exp_target, wstring exp_dir_nam
     }
     if (ret >= 0) {
         string test_cases_execution_log_file_name_passed =
-                Utils::ws2s(output_dir + L"/" + exp_student_name) + "_test_cases_execution_passed.txt";
+                Utils::ws2s(config->outputDir + L"/" + exp_student_name) + "_test_cases_execution_passed.txt";
         rename(test_cases_execution_log_file_name.c_str(), test_cases_execution_log_file_name_passed.c_str());
         result = L" 测试通过.";
-        update_test_execution_result(Utils::ws2s(sno), Utils::ws2s(sname), Utils::ws2s(exp_name), config->round, Utils::ws2s(result));
+        update_test_execution_result(Utils::ws2s(sno), Utils::ws2s(sname), Utils::ws2s(config->expName), config->round, Utils::ws2s(result));
     } else {
-        clear_dongmendb(work_dir, current_dir);
+        clear_dongmendb(config->workDir, current_dir);
         return -1;
     }
-    clear_dongmendb(work_dir, current_dir);
+    clear_dongmendb(config->workDir, current_dir);
     return 0;
 }
 

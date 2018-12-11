@@ -11,11 +11,6 @@
 
 using namespace std;
 
-/* wstring 转换为 char * 的宏*/
-#define WS2CHAR(x)  (Utils::ws2s(x).c_str())
-/* wstring 转换为 string*/
-#define WS2S(x)  (Utils::ws2s(x))
-
 int test_simhash(){
     const char *a = WS2CHAR(L"我");
     const char *b = WS2CHAR(L"喜欢");
