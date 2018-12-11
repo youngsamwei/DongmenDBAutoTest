@@ -50,21 +50,21 @@ int TestSimhashExperiment::run_simhash() {
                             break;
                         }
                         wstring file_path = dir + slash + find_file;
-                        ul_int file_hash = SimHash::simhash_file(Utils::ws2s(file_path).c_str());
+                        ul_int file_hash = SimHash::simhash_file(WS2S(file_path).c_str());
 
 
                         string sql_insert =
                                 "insert into experiments_simhash(sno, sname, expname, filename, round, simhash) values('"
-                                + Utils::ws2s(sno) + "', '"
-                                + Utils::ws2s(sname) + "', '"
-                                + Utils::ws2s(config->expName) + "', '"
-                                + Utils::ws2s(iter->first) + "', "
+                                + WS2S(sno) + "', '"
+                                + WS2S(sname) + "', '"
+                                + WS2S(config->expName) + "', '"
+                                + WS2S(iter->first) + "', "
                                 + to_string(config->round) + ", "
                                 + to_string(file_hash) + ")";
 
                         cout << endl << sql_insert << endl;
                         if (!config->connManager->execute_sql(sql_insert)){
-                            cout<<"error in store_test_execution_result. sno: "<<Utils::ws2s(sno)<<endl<<"error message"<<config->connManager->get_error_msg()<<endl;
+                            cout<<"error in store_test_execution_result. sno: "<<WS2S(sno)<<endl<<"error message"<<config->connManager->get_error_msg()<<endl;
                         };
                     }
                 }

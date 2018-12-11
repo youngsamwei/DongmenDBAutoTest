@@ -80,7 +80,7 @@ int TestExecution::run(wstring exp_dir_name) {
 
     int ret;
     /*复制文件开始*/
-    string copy_log_file_name = Utils::ws2s(config->outputDir + L"/" + exp_student_name) + "_copy_files_failed.txt";
+    string copy_log_file_name = WS2S(config->outputDir + L"/" + exp_student_name) + "_copy_files_failed.txt";
     if (config->outputStyle == OUTPUT_FILE) {
         xout.open(copy_log_file_name);
         assert(xout.is_open());
@@ -95,12 +95,12 @@ int TestExecution::run(wstring exp_dir_name) {
     if (ret < 0) {
         clear_dongmendb(config->workDir, current_dir);
         result = L"缺少实验文件.";
-        store_test_execution_result(Utils::ws2s(sno), Utils::ws2s(sname), Utils::ws2s(config->expName), config->round, Utils::ws2s(result));
+        store_test_execution_result(WS2S(sno), WS2S(sname), WS2S(config->expName), config->round, WS2S(result));
 
         /*若文件不存在*/
         return -1;
     } else {
-        string copy_log_file_name_passed = Utils::ws2s(config->outputDir + L"/" + exp_student_name) + "_copy_files_passed.txt";
+        string copy_log_file_name_passed = WS2S(config->outputDir + L"/" + exp_student_name) + "_copy_files_passed.txt";
         rename(copy_log_file_name.c_str(), copy_log_file_name_passed.c_str());
 
     }
@@ -111,7 +111,7 @@ int TestExecution::run(wstring exp_dir_name) {
     cmd_cmake_clean(build_dir);
 
     /*build开始*/
-    string build_log_file_name = Utils::ws2s(config->outputDir + L"/" + exp_student_name) + "_build_failed.txt";
+    string build_log_file_name = WS2S(config->outputDir + L"/" + exp_student_name) + "_build_failed.txt";
     if (config->outputStyle == OUTPUT_FILE) {
         xout.open(build_log_file_name);
 
@@ -127,19 +127,19 @@ int TestExecution::run(wstring exp_dir_name) {
     if (exists != 0) {
         clear_dongmendb(config->workDir, current_dir);
         result = L" 编译错误.";
-        store_test_execution_result(Utils::ws2s(sno), Utils::ws2s(sname), Utils::ws2s(config->expName), config->round, Utils::ws2s(result));
+        store_test_execution_result(WS2S(sno), WS2S(sname), WS2S(config->expName), config->round, WS2S(result));
         return -1;
     } else {
-        string build_log_file_name_passed = Utils::ws2s(config->outputDir + L"/" + exp_student_name) + "_build_passed.txt";
+        string build_log_file_name_passed = WS2S(config->outputDir + L"/" + exp_student_name) + "_build_passed.txt";
         rename(build_log_file_name.c_str(), build_log_file_name_passed.c_str());
     }
     /*build结束*/
 
     result = L" 测试失败.";
-    store_test_execution_result(WS2S(sno), Utils::ws2s(sname), Utils::ws2s(config->expName), config->round, Utils::ws2s(result));
+    store_test_execution_result(WS2S(sno), WS2S(sname), WS2S(config->expName), config->round, WS2S(result));
 
     string test_cases_execution_log_file_name =
-            Utils::ws2s(config->outputDir + L"/" + exp_student_name) + "_test_cases_execution_failed.txt";
+            WS2S(config->outputDir + L"/" + exp_student_name) + "_test_cases_execution_failed.txt";
     string test_cased_execution_passed_flag = "[  PASSED  ]";
     wstring exe_file_name = config->expTarget + L".exe";
     if (config->outputStyle == OUTPUT_FILE) {
@@ -152,10 +152,10 @@ int TestExecution::run(wstring exp_dir_name) {
     }
     if (ret >= 0) {
         string test_cases_execution_log_file_name_passed =
-                Utils::ws2s(config->outputDir + L"/" + exp_student_name) + "_test_cases_execution_passed.txt";
+                WS2S(config->outputDir + L"/" + exp_student_name) + "_test_cases_execution_passed.txt";
         rename(test_cases_execution_log_file_name.c_str(), test_cases_execution_log_file_name_passed.c_str());
         result = L" 测试通过.";
-        update_test_execution_result(Utils::ws2s(sno), Utils::ws2s(sname), Utils::ws2s(config->expName), config->round, Utils::ws2s(result));
+        update_test_execution_result(WS2S(sno), WS2S(sname), WS2S(config->expName), config->round, WS2S(result));
     } else {
         clear_dongmendb(config->workDir, current_dir);
         return -1;
@@ -185,7 +185,7 @@ int TestExecution::init_dongmendb(wstring work_dir, wstring dir_name) {
 }
 
 int TestExecution::clear_dongmendb(wstring work_dir, wstring dir_name) {
-    cout << "deleting " << Utils::ws2s(dir_name);
+    cout << "deleting " << WS2S(dir_name);
     _wchdir(work_dir.c_str());
     Utils::removeDirW(dir_name.c_str());
     return 0;
@@ -199,23 +199,23 @@ int TestExecution::copy_dongmendb(wstring from_dir_name, wstring dest_dir_name) 
 int TestExecution::copy_exp_to_dongmendb(wstring exp_dir_name, wstring dest_dir_name,
                                          std::map<wstring, wstring> exp_files, ofstream &xout) {
     xout << endl;
-    xout << Utils::ws2s(L"开始复制文件..") << endl;
+    xout << WS2S(L"开始复制文件..") << endl;
     map<wstring, wstring>::iterator iter;
     wstring slash = L"/";
     for (iter = exp_files.begin(); iter != exp_files.end(); iter++) {
         wstring find_file = Utils::findFileNameEndWith(exp_dir_name, iter->first);
         if (find_file.length() == 0) {
             /*若没有找到需要复制的文件*/
-            xout << Utils::ws2s(L"缺少文件:") << Utils::ws2s(iter->first) << endl;
+            xout << WS2S(L"缺少文件:") << WS2S(iter->first) << endl;
             return -1;
         }
         wstring file_name = exp_dir_name + slash + find_file;
         wstring dest_file_name = dest_dir_name + slash + iter->second;
 
         CopyFileW(file_name.c_str(), dest_file_name.c_str(), FALSE);
-        xout << Utils::ws2s(L"复制 ") << Utils::ws2s(file_name) << "  to " << Utils::ws2s(dest_file_name) << endl;
+        xout << WS2S(L"复制 ") << WS2S(file_name) << "  to " << WS2S(dest_file_name) << endl;
     }
-    xout << Utils::ws2s(L"复制文件完成");
+    xout << WS2S(L"复制文件完成");
     xout << endl;
     return 0;
 }
@@ -223,23 +223,23 @@ int TestExecution::copy_exp_to_dongmendb(wstring exp_dir_name, wstring dest_dir_
 int TestExecution::copy_exp_to_dongmendb(wstring exp_dir_name, wstring dest_dir_name,
                                          std::map<wstring, wstring> exp_files) {
     cout << endl;
-    cout << Utils::ws2s(L"开始复制文件..") << endl;
+    cout << WS2S(L"开始复制文件..") << endl;
     map<wstring, wstring>::iterator iter;
     wstring slash = L"/";
     for (iter = exp_files.begin(); iter != exp_files.end(); iter++) {
         wstring find_file = Utils::findFileNameEndWith(exp_dir_name, iter->first);
         if (find_file.length() == 0) {
             /*若没有找到需要复制的文件*/
-            cout << Utils::ws2s(L"缺少文件:") << Utils::ws2s(iter->first) << endl;
+            cout << WS2S(L"缺少文件:") << WS2S(iter->first) << endl;
             return -1;
         }
         wstring file_name = exp_dir_name + slash + find_file;
         wstring dest_file_name = dest_dir_name + slash + iter->second;
 
         CopyFileW(file_name.c_str(), dest_file_name.c_str(), FALSE);
-        cout << Utils::ws2s(L"复制 ") << Utils::ws2s(file_name) << "  to " << Utils::ws2s(dest_file_name) << endl;
+        cout << WS2S(L"复制 ") << WS2S(file_name) << "  to " << WS2S(dest_file_name) << endl;
     }
-    cout << Utils::ws2s(L"复制文件完成");
+    cout << WS2S(L"复制文件完成");
     cout << endl;
     return 0;
 }
@@ -252,7 +252,7 @@ int TestExecution::cmd_cmake_refresh(wstring output_dir, wstring project_dir) {
     _wmkdir(output_dir.c_str());
     _wchdir(output_dir.c_str());
 
-    cout << endl << Utils::ws2s(cmd) << endl;
+    cout << endl << WS2S(cmd) << endl;
 
     executeCMD(cmd);
 
@@ -265,7 +265,7 @@ int TestExecution::cmd_cmake_clean(wstring build_dir_name) {
 
     _wchdir(build_dir_name.c_str());
 
-    cout << endl << Utils::ws2s(cmd) << endl;
+    cout << endl << WS2S(cmd) << endl;
 
     executeCMD(cmd);
 
@@ -278,7 +278,7 @@ int TestExecution::cmd_cmake_build(wstring build_dir_name, wstring exp_target, s
 
     _wchdir(build_dir_name.c_str());
 
-    xout << endl << Utils::ws2s(cmd) << endl;
+    xout << endl << WS2S(cmd) << endl;
 
     executeCMD(cmd, xout);
 
@@ -290,7 +290,7 @@ int TestExecution::cmd_cmake_build(wstring build_dir_name, wstring exp_target) {
 
     _wchdir(build_dir_name.c_str());
 
-    cout << endl << Utils::ws2s(cmd) << endl;
+    cout << endl << WS2S(cmd) << endl;
 
     executeCMD(cmd);
 
@@ -300,7 +300,7 @@ int TestExecution::cmd_exp_target(wstring bin_dir, wstring exp_target, ofstream 
 
     _wchdir(bin_dir.c_str());
 
-    xout << endl << Utils::ws2s(exp_target) << endl;
+    xout << endl << WS2S(exp_target) << endl;
 
     return executeCMD(exp_target, xout, contents);
 
@@ -309,7 +309,7 @@ int TestExecution::cmd_exp_target(wstring bin_dir, wstring exp_target, string co
 
     _wchdir(bin_dir.c_str());
 
-    cout << endl << Utils::ws2s(exp_target) << endl;
+    cout << endl << WS2S(exp_target) << endl;
 
     return executeCMD(exp_target, contents);
 
@@ -381,7 +381,7 @@ int TestExecution::executeCMD(wstring cmd, ofstream &xout, string contents) {
     ptr = _wpopen(cmd.c_str(), L"rt");
     if (ptr != NULL) {
         recieving_chars_count = 0;
-        string exe_file_name = Utils::ws2s(cmd).c_str();
+        string exe_file_name = WS2S(cmd).c_str();
         int tm = 10;
         std::thread t(monitor_test_cases_execution, exe_file_name, tm, std::ref(recieving_chars_count));
 
@@ -411,7 +411,7 @@ int TestExecution::executeCMD(wstring cmd, string contents) {
     ptr = _wpopen(cmd.c_str(), L"rt");
     if (ptr != NULL) {
         recieving_chars_count = 0;
-        string exe_file_name = Utils::ws2s(cmd).c_str();
+        string exe_file_name = WS2S(cmd).c_str();
         int tm = 10;
         std::thread t(monitor_test_cases_execution, exe_file_name, tm, std::ref(recieving_chars_count));
 

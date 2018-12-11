@@ -155,7 +155,7 @@ bool DBSCANClusterAnalysis::DoDBSCANRecursive() {
         //cout << "孤立点\T" << i << endl;
     }
 
-    cout << Utils::ws2s(L"共聚类") << clusterId << Utils::ws2s(L"个") << endl;        //算法完成后，输出聚类个数
+    cout << WS2S(L"共聚类") << clusterId << WS2S(L"个") << endl;        //算法完成后，输出聚类个数
     return true;    //返回
 }
 

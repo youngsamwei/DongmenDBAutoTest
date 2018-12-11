@@ -9,7 +9,7 @@
 #include "Utils.h"
 
 
-string Utils::ws2s(const wstring &ws) {
+string WS2S(const wstring &ws) {
     string curLocale = setlocale(LC_ALL, NULL); // curLocale = "C";
 
     setlocale(LC_ALL, "chs");
