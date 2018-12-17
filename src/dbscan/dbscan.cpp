@@ -7,18 +7,74 @@
 #include <math.h>
 #include <iomanip>
 #include <Utils.h>
+#include <map>
 #include "dbscan/dbscan.h"
+#include "mysqlconn_manager.h"
+
+
+int DBSCANClusterAnalysis::getDataPoints(const string &sql_select, vector<DataPoint> *dataSets) {
+
+    if (!this->execute_sql(sql_select))
+        return 1;
+
+    MYSQL_RES *res = this->store_result();
+    if (NULL == res) {
+        mysql_free_result(res);
+        return 1;
+    }
+
+    MYSQL_ROW row;
+    unsigned long i = 0;
+    while (row = mysql_fetch_row(res)) {
+        DataPoint tempDP(row[0], row[1]);
+        double tempDimData[DIME_NUM];
+        tempDimData[0] = atof(row[2]);
+
+        tempDP.SetDimension(tempDimData);
+
+        tempDP.SetDpId(i);                    //将数据点对象ID设置为i
+        tempDP.SetVisited(false);            //数据点对象isVisited设置为false
+        tempDP.SetClusterId(-1);            //设置默认簇ID为-1
+        dataSets->push_back(tempDP);
+        i++;
+    }
+
+    mysql_free_result(res);
+    return 0;
+};
+
+DBSCANClusterAnalysis::DBSCANClusterAnalysis(string dbip, string dbuser, string dbpasswd, string dbname) {
+
+    /*MySQLConnManager.init*/
+    init(dbip, dbuser, dbpasswd, dbname);
+    if (reconnect()) {
+        if (!select_db(dbname)) {
+            cout << "Select successfully the database: " << dbname << endl;
+        } else {
+            cout << "select database error: " << get_error_msg() << endl;
+        }
+    } else {
+        cout << "error: " << get_error_msg() << endl;
+
+        exit(0);
+    }
+};
+
+DBSCANClusterAnalysis::~DBSCANClusterAnalysis() {
+    close_connect();
+};
 
 /*
  * 初始化数据.
  * */
 bool
-DBSCANClusterAnalysis::init(DataPointMysqlConnManager *connManager, string &sql_select, double radius, int minPTs) {
+DBSCANClusterAnalysis::initDataPoints(string &sql_select, double radius, int minPTs) {
     this->radius = radius;        //设置半径
     this->minPTs = minPTs;        //设置领域最小数据个数
     this->dimNum = DIME_NUM;    //设置数据维度
-    this->connManager = connManager;
-    this->connManager->getDataPoints(sql_select, &dadaSets);
+
+
+    getDataPoints(sql_select, &dadaSets);
 
     dataNum = dadaSets.size();            //设置数据对象集合大小
     for (unsigned long i = 0; i < dataNum; i++) {
@@ -27,72 +83,91 @@ DBSCANClusterAnalysis::init(DataPointMysqlConnManager *connManager, string &sql_
     return true;
 };
 
-/*
-函数：聚类初始化操作
-说明：将数据文件名，半径，领域最小数据个数信息写入聚类算法类，读取文件，把数据信息读入写进算法类数据集合中
-参数：
-char* fileName;    //文件名
-double radius;    //半径
-int minPTs;        //领域最小数据个数
-返回值： true;    */
-bool DBSCANClusterAnalysis::Init(char *fileName, double radius, int minPTs) {
-    this->radius = radius;        //设置半径
-    this->minPTs = minPTs;        //设置领域最小数据个数
-    this->dimNum = DIME_NUM;    //设置数据维度
-    ifstream ifs(fileName);        //打开文件
-    if (!ifs.is_open())                //若文件已经被打开，报错误信息
-    {
-        cout << "Error opening file";    //输出错误信息
-        exit(-1);                        //程序退出
+/*输出第几轮次的聚类结果*/
+bool DBSCANClusterAnalysis::WriteToFile(const int round, const string outputFileName) {
+    string sql_select = "select distinct filename from experiments_simhash where round = " + to_string(round);
+
+    if (!this->execute_sql(sql_select))
+        return 1;
+
+    MYSQL_RES *res = this->store_result();
+    if (NULL == res) {
+        mysql_free_result(res);
+        return 1;
     }
 
-    unsigned long i = 0;            //数据个数统计
-    while (!ifs.eof())                //从文件中读取POI信息，将POI信息写入POI列表中
-    {
-        DataPoint tempDP;                //临时数据点对象
-        double tempDimData[DIME_NUM];    //临时数据点维度信息
-        for (int j = 0; j < DIME_NUM; j++)    //读文件，读取每一维数据
-        {
-            ifs >> tempDimData[j];
-        }
-        tempDP.SetDimension(tempDimData);    //将维度信息存入数据点对象内
+    ofstream of1(outputFileName);
 
-//char date[20]="";
-//char time[20]="";
-        ////double type;    //无用信息
-        //ifs >> date;
-//ifs >> time;    //无用信息读入
+    MYSQL_ROW row;
 
-        tempDP.SetDpId(i);                    //将数据点对象ID设置为i
-        tempDP.SetVisited(false);            //数据点对象isVisited设置为false
-        tempDP.SetClusterId(-1);            //设置默认簇ID为-1
-        dadaSets.push_back(tempDP);            //将对象压入数据集合容器
-        i++;        //计数+1
+    unsigned long *l = mysql_fetch_lengths(res);
+
+//    of1<<WS2S(L"将对")<<*l<<WS2S(L"个文件聚类.")<<endl;
+    while (row = mysql_fetch_row(res)) {
+        string filename = row[0];
+        WriteToOStream(filename, of1);
     }
-    ifs.close();        //关闭文件流
-    dataNum = i;            //设置数据对象集合大小为i
-    for (unsigned long i = 0; i < dataNum; i++) {
-        SetArrivalPoints(dadaSets[i]);            //计算数据点领域内对象
-    }
-    return true;    //返回
+    of1.close();    //关闭输出文件流
+    mysql_free_result(res);
+    return 0;
 }
 
 /*
 函数：将已经过聚类算法处理的数据集合写回文件
 说明：将已经过聚类结果写回文件
 参数：
-char* fileName;    //要写入的文件名
+ string fileName 要分类的文件
+char* outputFileName;    //要写入的文件名
 返回值： true    */
-bool DBSCANClusterAnalysis::WriteToFile(const char *fileName) {
-    ofstream of1(fileName);                                //初始化文件输出流
-    for (unsigned long i = 0; i < dataNum; i++)                //对处理过的每个数据点写入文件
-    {
-        of1 << dadaSets[i].getSno() << '\t' << dadaSets[i].getSname() << '\t';
-        for (int d = 0; d < DIME_NUM; d++)                    //将维度信息写入文件
-            of1 << setiosflags(ios::fixed) << setprecision(0) << dadaSets[i].GetDimension()[d] << '\t';
-        of1 << dadaSets[i].GetClusterId() << endl;        //将所属簇ID写入文件
+bool DBSCANClusterAnalysis::WriteToOStream(const string fileName, ofstream &of1) {
+
+    map<long, vector<DataPoint *> *> *cluster = new map<long, vector<DataPoint *> *>();
+    map<long, vector<DataPoint *> *>::iterator it;
+
+    for (unsigned long i = 0; i < dadaSets.size(); i++) {
+        long cid = dadaSets[i].GetClusterId();
+        vector<DataPoint *> *vdp;
+        it = cluster->find(cid);
+        if (it == cluster->end()) {
+            vdp = new vector<DataPoint *>();
+            cluster->insert(pair<long, vector<DataPoint *> *>(cid, vdp));
+        } else {
+            vdp = it->second;
+        }
+        vdp->push_back(&dadaSets[i]);
     }
-    of1.close();    //关闭输出文件流
+    of1 << endl;
+    of1 << "*************************************************************************************" << endl;
+    of1 << WS2S(L"文件") << fileName << WS2S(L"的相似分组") << endl;
+    of1 << "*************************************************************************************" << endl;
+    it = cluster->begin();
+
+    while (it != cluster->end()) {
+        /*聚类id为-1说明不与其他相似*/
+        if (it->first > -1) {
+
+            of1 << endl << endl << fileName << WS2S(L"相似分组 ") << to_string(it->first) << ":" << endl;
+            vector<DataPoint *> *vdp = it->second;
+            if (vdp != NULL) {
+                of1 << "\t";
+                int i = 1;
+                for (vector<DataPoint *>::iterator iter = vdp->begin(); iter != vdp->end(); iter++) {
+
+                    of1 << (*iter)->getSname() << "(" << (*iter)->getSno() << ")" << ", ";
+
+                    if (i % 4 == 0) {
+                        of1 << endl << "\t";
+                    }
+                    i++;
+                }
+
+            }
+        }
+        it++;
+
+    }
+
+    of1 << endl;
     return true;    //返回
 }
 
@@ -106,9 +181,10 @@ bool DBSCANClusterAnalysis::WriteToMysql(int test_round, string file_name) {
                             + " and filename = '" + file_name + "';";
 
         cout << endl << sql_update << endl;
-        if (!connManager->execute_sql(sql_update)) {
-            cout << "error in DBSCANClusterAnalysis::WriteToMysql. sno: " << dadaSets[i].getSno()<<"\t sname: "<<dadaSets[i].getSname() << endl << "error message"
-                 << connManager->get_error_msg() << endl;
+        if (!execute_sql(sql_update)) {
+            cout << "error in DBSCANClusterAnalysis::WriteToMysql. sno: " << dadaSets[i].getSno() << "\t sname: "
+                 << dadaSets[i].getSname() << endl << "error message"
+                 << get_error_msg() << endl;
         };
     }
     return true;

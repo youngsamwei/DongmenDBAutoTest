@@ -8,16 +8,14 @@
 #include <vector>
 #include <iostream>
 #include <cmath>
-
+#include "mysqlconn_manager.h"
 #include "dbscan/datapoint.h"
-#include "datapoint_mysqlconn_manager.h"
 
 using namespace std;
 
 //聚类分析类型
-class DBSCANClusterAnalysis {
+class DBSCANClusterAnalysis : public MySQLConnManager{
 private:
-    DataPointMysqlConnManager *connManager;
     vector<DataPoint> dadaSets;        //数据集合
     unsigned int dimNum;            //维度
     double radius;                    //半径
@@ -29,13 +27,17 @@ private:
     void KeyPointCluster(unsigned long i, unsigned long clusterId);    //对数据点领域内的点执行聚类操作
 public:
 
-    DBSCANClusterAnalysis() {}                    //默认构造函数
-    bool init(DataPointMysqlConnManager *connManager, string &sql_select, double radius, int minPTs);
+    DBSCANClusterAnalysis(string dbip, string dbuser, string dbpasswd, string dbname) ;                   //默认构造函数
+    ~DBSCANClusterAnalysis();
 
-    bool Init(char *fileName, double radius, int minPTs);    //初始化操作
+    bool initDataPoints(string &sql_select, double radius, int minPTs);
+
     bool DoDBSCANRecursive();            //DBSCAN递归算法
-    bool WriteToFile(const char *fileName);    //将聚类结果写入文件
+    bool WriteToOStream(const string fileName, ofstream &of1);    //将聚类结果写入文件
+    bool WriteToFile(const int round, const string outputFileName);
     bool WriteToMysql(int test_round, string file_name);//将聚类结果写入数据库
+
+    int getDataPoints(const string &sql_select, vector<DataPoint> *dataSets);
 };
 
 #endif //DONGMENDBAUTOTEST_DBSCAN_H
