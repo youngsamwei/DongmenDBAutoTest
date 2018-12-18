@@ -16,7 +16,7 @@ using namespace std;
 //聚类分析类型
 class DBSCANClusterAnalysis : public MySQLConnManager{
 private:
-    vector<DataPoint> dadaSets;        //数据集合
+    vector<DataPoint> dataSets;        //数据集合
     unsigned int dimNum;            //维度
     double radius;                    //半径
     unsigned int dataNum;            //数据数量
@@ -32,7 +32,8 @@ public:
 
     bool initDataPoints(string &sql_select, double radius, int minPTs);
 
-    bool DoDBSCANRecursive();            //DBSCAN递归算法
+    bool DoDBSCANRecursive(int testRound, double radius, int minPTs);
+    bool DoDBSCANRecursiveOnDataset();            //DBSCAN递归算法
     bool WriteToOStream(const string fileName, ofstream &of1);    //将聚类结果写入文件
     bool WriteToFile(const int round, const string outputFileName);
     bool WriteToMysql(int test_round, string file_name);//将聚类结果写入数据库

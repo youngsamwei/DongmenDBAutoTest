@@ -19,14 +19,14 @@ int main(int argc, char *argv[]) {
 
     int test_round = -1;
     if (argc == 1) {
-        cout << " DongmenDBAutoTest <test_round_num>" << endl << "error exit." << endl;
+        cout << " run_simhash_experiment.exe <test_round_num>" << endl << "error exit." << endl;
         exit(0);
     }
     int r = atoi(argv[1]);
     if (r > 0) {
         test_round = r;
     } else {
-        cout << "DongmenDBAutoTest <test_round_num>  test_round_num should be a num." << endl << "error exit." << endl;
+        cout << "run_simhash_experiment.exe <test_round_num>  test_round_num should be a num." << endl << "error exit." << endl;
         exit(0);
     }
 

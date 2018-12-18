@@ -73,12 +73,12 @@ DBSCANClusterAnalysis::initDataPoints(string &sql_select, double radius, int min
     this->minPTs = minPTs;        //设置领域最小数据个数
     this->dimNum = DIME_NUM;    //设置数据维度
 
+    dataSets.clear();
+    getDataPoints(sql_select, &dataSets);
 
-    getDataPoints(sql_select, &dadaSets);
-
-    dataNum = dadaSets.size();            //设置数据对象集合大小
+    dataNum = dataSets.size();            //设置数据对象集合大小
     for (unsigned long i = 0; i < dataNum; i++) {
-        SetArrivalPoints(dadaSets[i]);            //计算数据点领域内对象
+        SetArrivalPoints(dataSets[i]);            //计算数据点领域内对象
     }
     return true;
 };
@@ -124,8 +124,8 @@ bool DBSCANClusterAnalysis::WriteToOStream(const string fileName, ofstream &of1)
     map<long, vector<DataPoint *> *> *cluster = new map<long, vector<DataPoint *> *>();
     map<long, vector<DataPoint *> *>::iterator it;
 
-    for (unsigned long i = 0; i < dadaSets.size(); i++) {
-        long cid = dadaSets[i].GetClusterId();
+    for (unsigned long i = 0; i < dataSets.size(); i++) {
+        long cid = dataSets[i].GetClusterId();
         vector<DataPoint *> *vdp;
         it = cluster->find(cid);
         if (it == cluster->end()) {
@@ -134,7 +134,7 @@ bool DBSCANClusterAnalysis::WriteToOStream(const string fileName, ofstream &of1)
         } else {
             vdp = it->second;
         }
-        vdp->push_back(&dadaSets[i]);
+        vdp->push_back(&dataSets[i]);
     }
     of1 << endl;
     of1 << "*************************************************************************************" << endl;
@@ -173,17 +173,17 @@ bool DBSCANClusterAnalysis::WriteToOStream(const string fileName, ofstream &of1)
 
 bool DBSCANClusterAnalysis::WriteToMysql(int test_round, string file_name) {
 //对处理过的每个数据点写入数据库
-    for (unsigned long i = 0; i < dadaSets.size(); i++) {
+    for (unsigned long i = 0; i < dataSets.size(); i++) {
         string sql_update = "update experiments_simhash set clusterid = "
-                            + to_string(dadaSets[i].GetClusterId())
-                            + " where sno = '" + dadaSets[i].getSno() + "' "
+                            + to_string(dataSets[i].GetClusterId())
+                            + " where sno = '" + dataSets[i].getSno() + "' "
                             + " and round = " + to_string(test_round)
                             + " and filename = '" + file_name + "';";
 
         cout << endl << sql_update << endl;
         if (!execute_sql(sql_update)) {
-            cout << "error in DBSCANClusterAnalysis::WriteToMysql. sno: " << dadaSets[i].getSno() << "\t sname: "
-                 << dadaSets[i].getSname() << endl << "error message"
+            cout << "error in DBSCANClusterAnalysis::WriteToMysql. sno: " << dataSets[i].getSno() << "\t sname: "
+                 << dataSets[i].getSname() << endl << "error message"
                  << get_error_msg() << endl;
         };
     }
@@ -198,7 +198,7 @@ bool DBSCANClusterAnalysis::WriteToMysql(int test_round, string file_name) {
 void DBSCANClusterAnalysis::SetArrivalPoints(DataPoint &dp) {
     for (unsigned long i = 0; i < dataNum; i++)                //对每个数据点执行
     {
-        double distance = GetDistance(dadaSets[i], dp);    //获取与特定点之间的距离
+        double distance = GetDistance(dataSets[i], dp);    //获取与特定点之间的距离
         if (distance <= radius && i != dp.GetDpId())        //若距离小于半径，并且特定点的id与dp的id不同执行
             dp.GetArrivalPoints().push_back(i);            //将特定点id压力dp的领域列表中
     }
@@ -210,17 +210,48 @@ void DBSCANClusterAnalysis::SetArrivalPoints(DataPoint &dp) {
     dp.SetKey(false);    //若非核心对象，则将dp核心对象标志位设为false
 }
 
+bool DBSCANClusterAnalysis::DoDBSCANRecursive(int testRound, double radius, int minPTs){
+    string sql_select = "select distinct filename from experiments_simhash where round = " + to_string(testRound);
+
+    if (!this->execute_sql(sql_select))
+        return 1;
+
+    MYSQL_RES *res = this->store_result();
+    if (NULL == res) {
+        mysql_free_result(res);
+        return 1;
+    }
+
+    MYSQL_ROW row;
+
+    unsigned long *l = mysql_fetch_lengths(res);
+
+//    of1<<WS2S(L"将对")<<*l<<WS2S(L"个文件聚类.")<<endl;
+    while (row = mysql_fetch_row(res)) {
+        string filename = row[0];
+
+        string sql_select = "select sno, sname, simhash from experiments_simhash where round = " + to_string(testRound) +
+                            " and filename='" + filename + "'";
+
+        initDataPoints(sql_select, radius, minPTs);        //算法初始化操作，指定半径为10，领域内最小数据点个数为1，（在程序中已指定数据维度为1）
+        DoDBSCANRecursiveOnDataset();                    //执行聚类算法
+        WriteToMysql(testRound, filename);    //将聚类结果写入数据库
+    }
+
+    mysql_free_result(res);
+    return 0;
+}
 
 /*
 函数：执行聚类操作
 说明：执行聚类操作
 参数：
 返回值： true;    */
-bool DBSCANClusterAnalysis::DoDBSCANRecursive() {
+bool DBSCANClusterAnalysis::DoDBSCANRecursiveOnDataset() {
     unsigned long clusterId = 0;                        //聚类id计数，初始化为0
     for (unsigned long i = 0; i < dataNum; i++)            //对每一个数据点执行
     {
-        DataPoint &dp = dadaSets[i];                    //取到第i个数据点对象
+        DataPoint &dp = dataSets[i];                    //取到第i个数据点对象
         if (!dp.isVisited() && dp.IsKey())            //若对象没被访问过，并且是核心对象执行
         {
             dp.SetClusterId(clusterId);                //设置该对象所属簇ID为clusterId
@@ -243,11 +274,11 @@ unsigned long dpID;            //数据点id
 unsigned long clusterId;    //数据点所属簇id
 返回值： void;    */
 void DBSCANClusterAnalysis::KeyPointCluster(unsigned long dpID, unsigned long clusterId) {
-    DataPoint &srcDp = dadaSets[dpID];        //获取数据点对象
+    DataPoint &srcDp = dataSets[dpID];        //获取数据点对象
     if (!srcDp.IsKey()) return;
     vector<unsigned long> &arrvalPoints = srcDp.GetArrivalPoints();        //获取对象领域内点ID列表
     for (unsigned long i = 0; i < arrvalPoints.size(); i++) {
-        DataPoint &desDp = dadaSets[arrvalPoints[i]];    //获取领域内点数据点
+        DataPoint &desDp = dataSets[arrvalPoints[i]];    //获取领域内点数据点
         if (!desDp.isVisited())                            //若该对象没有被访问过执行
         {
             //cout << "数据点\t"<< desDp.GetDpId()<<"聚类ID为\t" <<clusterId << endl;

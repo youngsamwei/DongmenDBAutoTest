@@ -126,7 +126,7 @@ int TestExecution::run(wstring exp_dir_name) {
     int exists = _waccess(bin_exe_name.c_str(), F_OK);
     if (exists != 0) {
         clear_dongmendb(config->workDir, current_dir);
-        result = L" 编译错误.";
+        result = L"编译错误.";
         store_test_execution_result(WS2S(sno), WS2S(sname), WS2S(config->expName), config->round, WS2S(result));
         return -1;
     } else {
@@ -135,7 +135,7 @@ int TestExecution::run(wstring exp_dir_name) {
     }
     /*build结束*/
 
-    result = L" 测试失败.";
+    result = L"程序执行过程中发生错误.";
     store_test_execution_result(WS2S(sno), WS2S(sname), WS2S(config->expName), config->round, WS2S(result));
 
     string test_cases_execution_log_file_name =
@@ -150,11 +150,14 @@ int TestExecution::run(wstring exp_dir_name) {
     } else{
         ret = cmd_exp_target(bin_dir, exe_file_name, test_cased_execution_passed_flag);
     }
+    result = L"测试未通过.";
+    update_test_execution_result(WS2S(sno), WS2S(sname), WS2S(config->expName), config->round, WS2S(result));
+
     if (ret >= 0) {
         string test_cases_execution_log_file_name_passed =
                 WS2S(config->outputDir + L"/" + exp_student_name) + "_test_cases_execution_passed.txt";
         rename(test_cases_execution_log_file_name.c_str(), test_cases_execution_log_file_name_passed.c_str());
-        result = L" 测试通过.";
+        result = L"通过.";
         update_test_execution_result(WS2S(sno), WS2S(sname), WS2S(config->expName), config->round, WS2S(result));
     } else {
         clear_dongmendb(config->workDir, current_dir);
