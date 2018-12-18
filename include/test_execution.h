@@ -84,6 +84,10 @@ protected:
     int cmd_exp_target(wstring bin_dir, wstring exp_target, ofstream& out, string contents);
     int cmd_exp_target(wstring bin_dir, wstring exp_target, string contents);
 
+    /*返回-1 执行错误，返回0 测试通过，返回1 测试未通过*/
+    int cmd_exp_target(wstring bin_dir, wstring exp_target, ofstream& out, string passed_contents, string failure_contents);
+    int cmd_exp_target(wstring bin_dir, wstring exp_target, string passed_contents, string failure_contents);
+
     /*获取测试结果*/
     int cmd_get_test_result();
 
@@ -106,6 +110,9 @@ private:
     int executeCMD(wstring cmd, ofstream& xout, string contents);
     int executeCMD(wstring cmd, string contents);
 
+    /*返回-1 执行错误，返回0 测试通过，返回1 测试未通过*/
+    int executeCMD(wstring cmd, ofstream& xout, string passed_contents, string failure_contents);
+    int executeCMD(wstring cmd, string passed_contents, string failure_contents);
 
 
     /*利用接收到的字符数作为监控标识，

@@ -11,7 +11,13 @@
 
 using namespace std;
 
-TestExecution::TestExecution(TestExecutionConfig *config){
+enum TEST_RESULT{
+    TEST_RESULT_EXECUTION_ERROR = -1,
+    TEST_RESULT_PASSED,
+    TEST_RESULT_FAILURE
+};
+
+TestExecution::TestExecution(TestExecutionConfig *config) {
     this->config = config;
 }
 
@@ -37,7 +43,7 @@ int TestExecution::batchrun() {
                 if (fb.attrib == 16) {
                     /* 处理每个学生的实验作业文件夹*/
                     wstring exp_dir_name = config->expDirName + L"/" + fb.name;
-                    run( exp_dir_name);
+                    run(exp_dir_name);
                 }
 
             }
@@ -88,7 +94,7 @@ int TestExecution::run(wstring exp_dir_name) {
         ret = copy_exp_to_dongmendb(exp_dir_name, current_dir, config->exp_files, xout);
         xout.close();
         xout.clear();
-    }else{
+    } else {
         /*输出到console*/
         ret = copy_exp_to_dongmendb(exp_dir_name, current_dir, config->exp_files);
     }
@@ -118,7 +124,7 @@ int TestExecution::run(wstring exp_dir_name) {
         ret = cmd_cmake_build(build_dir, config->expTarget, xout);
         xout.close();
         xout.clear();
-    } else{
+    } else {
         ret = cmd_cmake_build(build_dir, config->expTarget);
     }
     /*检测exe文件是否产生，若产生则编译成功*/
@@ -141,24 +147,30 @@ int TestExecution::run(wstring exp_dir_name) {
     string test_cases_execution_log_file_name =
             WS2S(config->outputDir + L"/" + exp_student_name) + "_test_cases_execution_failed.txt";
     string test_cased_execution_passed_flag = "[  PASSED  ]";
+    string test_cased_execution_failure_flag = "FAILED TEST";
     wstring exe_file_name = config->expTarget + L".exe";
     if (config->outputStyle == OUTPUT_FILE) {
         xout.open(test_cases_execution_log_file_name);
-        ret = cmd_exp_target(bin_dir, exe_file_name, xout, test_cased_execution_passed_flag);
+        ret = cmd_exp_target(bin_dir, exe_file_name, xout, test_cased_execution_passed_flag, test_cased_execution_failure_flag);
         xout.close();
         xout.clear();
-    } else{
-        ret = cmd_exp_target(bin_dir, exe_file_name, test_cased_execution_passed_flag);
+    } else {
+        ret = cmd_exp_target(bin_dir, exe_file_name, test_cased_execution_passed_flag, test_cased_execution_failure_flag);
     }
-    result = L"测试未通过.";
-    update_test_execution_result(WS2S(sno), WS2S(sname), WS2S(config->expName), config->round, WS2S(result));
 
-    if (ret >= 0) {
-        string test_cases_execution_log_file_name_passed =
-                WS2S(config->outputDir + L"/" + exp_student_name) + "_test_cases_execution_passed.txt";
-        rename(test_cases_execution_log_file_name.c_str(), test_cases_execution_log_file_name_passed.c_str());
-        result = L"通过.";
+    if (ret != TEST_RESULT_EXECUTION_ERROR) {
+        if(config->outputStyle == OUTPUT_FILE) {
+            string test_cases_execution_log_file_name_passed =
+                    WS2S(config->outputDir + L"/" + exp_student_name) + "_test_cases_execution_passed.txt";
+            rename(test_cases_execution_log_file_name.c_str(), test_cases_execution_log_file_name_passed.c_str());
+        }
+        if (ret == TEST_RESULT_FAILURE) {
+            result = L"测试未通过.";
+        }else if(ret == TEST_RESULT_PASSED){
+            result = L"通过.";
+        }
         update_test_execution_result(WS2S(sno), WS2S(sname), WS2S(config->expName), config->round, WS2S(result));
+
     } else {
         clear_dongmendb(config->workDir, current_dir);
         return -1;
@@ -287,6 +299,7 @@ int TestExecution::cmd_cmake_build(wstring build_dir_name, wstring exp_target, s
 
     return 0;
 }
+
 int TestExecution::cmd_cmake_build(wstring build_dir_name, wstring exp_target) {
 
     wstring cmd = cmake_exe + cmd_build + build_dir_name + cmd_target + exp_target + cmake_others_parameters;
@@ -299,6 +312,7 @@ int TestExecution::cmd_cmake_build(wstring build_dir_name, wstring exp_target) {
 
     return 0;
 }
+
 int TestExecution::cmd_exp_target(wstring bin_dir, wstring exp_target, ofstream &xout, string contents) {
 
     _wchdir(bin_dir.c_str());
@@ -308,6 +322,7 @@ int TestExecution::cmd_exp_target(wstring bin_dir, wstring exp_target, ofstream 
     return executeCMD(exp_target, xout, contents);
 
 }
+
 int TestExecution::cmd_exp_target(wstring bin_dir, wstring exp_target, string contents) {
 
     _wchdir(bin_dir.c_str());
@@ -331,9 +346,10 @@ int TestExecution::store_test_execution_result(string sno, string sname, string 
                     + to_string(round) + string(", '")
                     + result + string("');");
 
-    cout<<endl<<insert<<endl;
-    if (!config->connManager->execute_sql(insert)){
-        cout<<"error in store_test_execution_result. sno: "<<sno<<endl<<"error message"<<config->connManager->get_error_msg()<<endl;
+    cout << endl << insert << endl;
+    if (!config->connManager->execute_sql(insert)) {
+        cout << "error in store_test_execution_result. sno: " << sno << endl << "error message"
+             << config->connManager->get_error_msg() << endl;
         return 1;
     };
     return 0;
@@ -347,9 +363,10 @@ int TestExecution::update_test_execution_result(string sno, string sname, string
                     + string(" sno = '") + sno + "' and "
                     + string(" expname = '") + expname + string("' and ")
                     + string(" round = ") + to_string(round) + string("; ");
-    cout<<endl<<update<<endl;
-    if (!config->connManager->execute_sql(update)){
-        cout<<"update in store_test_execution_result. sno: "<<sno<<endl<<"error message"<<config->connManager->get_error_msg()<<endl;
+    cout << endl << update << endl;
+    if (!config->connManager->execute_sql(update)) {
+        cout << "update in store_test_execution_result. sno: " << sno << endl << "error message"
+             << config->connManager->get_error_msg() << endl;
         return 1;
     };
     return 0;
@@ -452,3 +469,89 @@ int TestExecution::executeCMD(wstring cmd, ofstream &xout) {
 }
 
 
+int TestExecution::executeCMD(wstring cmd, ofstream &xout, string passed_contents, string failure_contents) {
+    char buf_ps[1024] = {0};
+    FILE *ptr;
+    ptr = _wpopen(cmd.c_str(), L"rt");
+    if (ptr != NULL) {
+        recieving_chars_count = 0;
+        string exe_file_name = WS2S(cmd).c_str();
+        int tm = 10;
+        std::thread t(monitor_test_cases_execution, exe_file_name, tm, std::ref(recieving_chars_count));
+
+        while (fgets(buf_ps, 1024, ptr) != NULL) {
+            xout << buf_ps;
+            recieving_chars_count++;
+        }
+        pclose(ptr);
+
+        t.join();
+        recieving_chars_count = -1;
+
+        ptr = NULL;
+    } else {
+        printf("popen %s error\n", cmd);
+    }
+    string last_buf(buf_ps);
+
+    if (last_buf.find(passed_contents) != last_buf.npos) {
+        return TEST_RESULT_PASSED;
+    } else if (last_buf.find(failure_contents) != last_buf.npos) {
+        return TEST_RESULT_FAILURE;
+    };
+    return TEST_RESULT_EXECUTION_ERROR;
+};
+
+int TestExecution::executeCMD(wstring cmd, string passed_contents, string failure_contents) {
+    char buf_ps[1024] = {0};
+    FILE *ptr;
+    ptr = _wpopen(cmd.c_str(), L"rt");
+    if (ptr != NULL) {
+        recieving_chars_count = 0;
+        string exe_file_name = WS2S(cmd).c_str();
+        int tm = 10;
+        std::thread t(monitor_test_cases_execution, exe_file_name, tm, std::ref(recieving_chars_count));
+
+        while (fgets(buf_ps, 1024, ptr) != NULL) {
+            cout << buf_ps;
+            recieving_chars_count++;
+        }
+        pclose(ptr);
+
+        t.join();
+        recieving_chars_count = -1;
+
+
+        ptr = NULL;
+    } else {
+        printf("popen %s error\n", cmd);
+    }
+    string last_buf(buf_ps);
+
+    if (last_buf.find(passed_contents) != last_buf.npos) {
+        return TEST_RESULT_PASSED;
+    } else if (last_buf.find(failure_contents) != last_buf.npos) {
+        return TEST_RESULT_FAILURE;
+    };
+    return TEST_RESULT_EXECUTION_ERROR;
+};
+
+int TestExecution::cmd_exp_target(wstring bin_dir, wstring exp_target, ofstream &xout, string passed_contents,
+                                  string failure_contents) {
+    _wchdir(bin_dir.c_str());
+
+    xout << endl << WS2S(exp_target) << endl;
+
+    return executeCMD(exp_target, xout, passed_contents, failure_contents);
+
+};
+
+int
+TestExecution::cmd_exp_target(wstring bin_dir, wstring exp_target, string passed_contents, string failure_contents) {
+    _wchdir(bin_dir.c_str());
+
+    cout << endl << WS2S(exp_target) << endl;
+
+    return executeCMD(exp_target, passed_contents, failure_contents);
+
+};
