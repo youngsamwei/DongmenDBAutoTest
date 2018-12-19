@@ -139,6 +139,7 @@ bool DBSCANClusterAnalysis::WriteToOStream(const string fileName, ofstream &of1)
         }
         vdp->push_back(&(dataSets[i]));
     }
+    of1<<endl<<WS2S(L"括号中的数值是相应文件的simhash值。")<<endl;
     of1 << endl;
     of1 << "*************************************************************************************" << endl;
     of1 << WS2S(L"文件") << fileName << WS2S(L"的相似分组") << endl;
@@ -159,7 +160,7 @@ bool DBSCANClusterAnalysis::WriteToOStream(const string fileName, ofstream &of1)
                 int i = 1;
                 for (vector<DataPoint *>::iterator iter = vdp->begin(); iter != vdp->end(); iter++) {
 
-                    of1 << (*iter)->getSname() << "(" << (*iter)->getSno() << ")" << ", ";
+                    of1 << (*iter)->getSname() << "(" <<setiosflags(ios::fixed)<<setprecision(0)<< (*iter)->GetDimension()[0] << ")" << ", ";
 
                     if (i % 4 == 0) {
                         of1 << endl << "\t";

@@ -2,6 +2,7 @@
 // Created by sam on 2018/12/10.
 //
 
+#include <Utils.h>
 #include "dbscan/datapoint.h"
 #include "dbscan/dbscan.h"
 
@@ -30,7 +31,7 @@ int main(int argc, char *argv[]) {
         exit(0);
     }
 
-    string output_file_name = "D:/experiment_cluster_" + to_string(test_round) + ".txt";
+    string output_file_name = WS2S(L"D:/实验相似度测试_") + to_string(test_round) + ".txt";
 
     dbscan_cluster.DoDBSCANRecursive(test_round, 10, 1, output_file_name);
 
