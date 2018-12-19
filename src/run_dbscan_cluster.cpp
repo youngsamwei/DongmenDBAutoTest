@@ -32,8 +32,7 @@ int main(int argc, char *argv[]) {
 
     string output_file_name = "D:/experiment_cluster_" + to_string(test_round) + ".txt";
 
-    dbscan_cluster.DoDBSCANRecursive(test_round, 10, 1);
-    dbscan_cluster.WriteToFile(test_round, output_file_name);
+    dbscan_cluster.DoDBSCANRecursive(test_round, 10, 1, output_file_name);
 
 
 }

@@ -50,7 +50,13 @@ int TestSimhashExperiment::run_simhash() {
                             break;
                         }
                         wstring file_path = dir + slash + find_file;
-                        ul_int file_hash = SimHash::simhash_file(WS2S(file_path).c_str());
+                        ul_int file_hash = 0;
+                        if (config->useStopWords){
+//                            file_hash = SimHash::simhash_file(WS2S(file_path).c_str(), &(TestExecutionConfig::stopWords));
+                            file_hash = SimHash::simhash_file(WS2S(file_path).c_str());
+                        }else {
+                            file_hash = SimHash::simhash_file(WS2S(file_path).c_str());
+                        }
 
 
                         string sql_insert =

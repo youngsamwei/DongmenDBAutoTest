@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
     tse.run_simhash(&experiment_config_2);
 
     tse.run_simhash(&experiment_config_3);
-
+//
     tse.run_simhash(&experiment_config_4);
 
     connManager.close_connect();

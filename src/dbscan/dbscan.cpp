@@ -74,6 +74,7 @@ DBSCANClusterAnalysis::initDataPoints(string &sql_select, double radius, int min
     this->dimNum = DIME_NUM;    //设置数据维度
 
     dataSets.clear();
+
     getDataPoints(sql_select, &dataSets);
 
     dataNum = dataSets.size();            //设置数据对象集合大小
@@ -124,8 +125,10 @@ bool DBSCANClusterAnalysis::WriteToOStream(const string fileName, ofstream &of1)
     map<long, vector<DataPoint *> *> *cluster = new map<long, vector<DataPoint *> *>();
     map<long, vector<DataPoint *> *>::iterator it;
 
+
     for (unsigned long i = 0; i < dataSets.size(); i++) {
         long cid = dataSets[i].GetClusterId();
+
         vector<DataPoint *> *vdp;
         it = cluster->find(cid);
         if (it == cluster->end()) {
@@ -134,20 +137,23 @@ bool DBSCANClusterAnalysis::WriteToOStream(const string fileName, ofstream &of1)
         } else {
             vdp = it->second;
         }
-        vdp->push_back(&dataSets[i]);
+        vdp->push_back(&(dataSets[i]));
     }
     of1 << endl;
     of1 << "*************************************************************************************" << endl;
     of1 << WS2S(L"文件") << fileName << WS2S(L"的相似分组") << endl;
     of1 << "*************************************************************************************" << endl;
+
+    cout<<"datasets size: "<<dataSets.size()<<", cluster size: "<<cluster->size()<<endl;
+
     it = cluster->begin();
 
     while (it != cluster->end()) {
         /*聚类id为-1说明不与其他相似*/
         if (it->first > -1) {
-
-            of1 << endl << endl << fileName << WS2S(L"相似分组 ") << to_string(it->first) << ":" << endl;
             vector<DataPoint *> *vdp = it->second;
+            of1 << endl << endl << fileName << WS2S(L"相似分组 ") << to_string(it->first) << "("<<vdp->size()<<"):" << endl;
+
             if (vdp != NULL) {
                 of1 << "\t";
                 int i = 1;
@@ -180,7 +186,7 @@ bool DBSCANClusterAnalysis::WriteToMysql(int test_round, string file_name) {
                             + " and round = " + to_string(test_round)
                             + " and filename = '" + file_name + "';";
 
-        cout << endl << sql_update << endl;
+//        cout << endl << sql_update << endl;
         if (!execute_sql(sql_update)) {
             cout << "error in DBSCANClusterAnalysis::WriteToMysql. sno: " << dataSets[i].getSno() << "\t sname: "
                  << dataSets[i].getSname() << endl << "error message"
@@ -242,6 +248,41 @@ bool DBSCANClusterAnalysis::DoDBSCANRecursive(int testRound, double radius, int 
     return 0;
 }
 
+
+bool DBSCANClusterAnalysis::DoDBSCANRecursive(int testRound, double radius, int minPTs, string outputFileName){
+    string sql_select = "select distinct filename from experiments_simhash where round = " + to_string(testRound);
+
+    if (!this->execute_sql(sql_select))
+        return 1;
+
+    MYSQL_RES *res = this->store_result();
+    if (NULL == res) {
+        mysql_free_result(res);
+        return 1;
+    }
+
+    ofstream of1(outputFileName);
+
+    MYSQL_ROW row;
+
+    unsigned long *l = mysql_fetch_lengths(res);
+
+//    of1<<WS2S(L"将对")<<*l<<WS2S(L"个文件聚类.")<<endl;
+    while (row = mysql_fetch_row(res)) {
+        string filename = row[0];
+
+        string sql_select = "select sno, sname, simhash from experiments_simhash where round = " + to_string(testRound) +
+                            " and filename='" + filename + "'";
+
+        initDataPoints(sql_select, radius, minPTs);        //算法初始化操作，指定半径为10，领域内最小数据点个数为1，（在程序中已指定数据维度为1）
+        DoDBSCANRecursiveOnDataset();                    //执行聚类算法
+        WriteToMysql(testRound, filename);    //将聚类结果写入数据库
+        WriteToOStream(filename, of1);
+    }
+    of1.close();    //关闭输出文件流
+    mysql_free_result(res);
+    return 0;
+}
 /*
 函数：执行聚类操作
 说明：执行聚类操作

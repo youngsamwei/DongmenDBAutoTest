@@ -5,6 +5,7 @@
 #include <cstring>
 #include "simhash.h"
 
+
 ul_int SimHash::sh_hash(const char *arKey, unsigned int nKeyLength) {
     register ul_int hash = 5381;
 
@@ -105,7 +106,7 @@ ul_int SimHash::sh_simhash(vector<char *> tokens) {
 }
 
 ul_int SimHash::simhash_file(const char *fileName) {
-    setlocale(LC_ALL,"Chinese-simplified");
+    setlocale(LC_ALL, "Chinese-simplified");
     fstream f(fileName);//创建一个fstream文件流对象
     vector<char *> words; //创建一个vector<string>对象
     string line; //保存读入的每一行
@@ -119,6 +120,36 @@ ul_int SimHash::simhash_file(const char *fileName) {
         token = std::strtok(strTemp, seps);
         while (token != NULL) {
             words.push_back(token);
+            token = std::strtok(NULL, seps);
+        }
+
+    }
+
+    f.close();
+    return SimHash::sh_simhash(words);
+};
+
+
+ul_int SimHash::simhash_file(const char *fileName, map<string, int> *stopWords) {
+    setlocale(LC_ALL, "Chinese-simplified");
+    fstream f(fileName);//创建一个fstream文件流对象
+    vector<char *> words; //创建一个vector<string>对象
+    string line; //保存读入的每一行
+    char seps[] = " ;#　\t.()*:,!=<>/'\\\"";//空格,分号，#，tab键
+    while (getline(f, line))//会自动把\n换行符去掉
+    {
+        char *token;
+
+        char *strTemp = (char *) line.c_str();
+
+        token = std::strtok(strTemp, seps);
+        while (token != NULL) {
+            /*不在stopwords中*/
+            if (stopWords->count(token) > 0) {
+
+            }else{
+                words.push_back(token);
+            }
             token = std::strtok(NULL, seps);
         }
 

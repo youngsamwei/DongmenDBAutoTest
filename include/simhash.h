@@ -3,9 +3,13 @@
 
 #include <string.h>
 
+#include <map>
+
 #define SIMHASH_BIT 64
 
 typedef unsigned long int ul_int;
+
+using namespace std;
 
 class SimHash{
 public:
@@ -16,6 +20,8 @@ public:
 
     /*计算文本文件的simhash值*/
     static ul_int simhash_file(const char *fileName);
+
+    static ul_int simhash_file(const char *fileName, map<string, int> *stopWords);
 
 };
 #endif

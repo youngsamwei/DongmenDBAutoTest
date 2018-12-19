@@ -31,6 +31,8 @@ public:
     std::map<wstring, wstring> exp_files;
     int round;
     OutputStyle outputStyle;
+    static map<string, int> stopWords;
+    bool useStopWords;
 
     TestExecutionConfig(wstring expName,
                         wstring expTarget,
@@ -38,7 +40,8 @@ public:
                         wstring title,
                         wstring workDir,
                         wstring dongmendbSrcDir,
-                        wstring outputDir) {
+                        wstring outputDir,
+                        bool useStopWords = false) {
         this->expName = expName;
         this->expTarget = expTarget;
         this->expDirName = expDirName;
@@ -49,6 +52,8 @@ public:
 
         /*默认输出测试过程到文件*/
         this->outputStyle = OUTPUT_FILE;
+        this->useStopWords = useStopWords;
+
     };
 
     TestExecutionConfig(wstring expName,
@@ -60,7 +65,8 @@ public:
                         wstring outputDir,
                         int round,
                         MySQLConnManager *connManager,
-                        OutputStyle outputStyle) {
+                        OutputStyle outputStyle,
+                        bool useStopWords = false) {
         this->connManager = connManager;
         this->round = round;
 
@@ -72,7 +78,10 @@ public:
         this->dongmendbSrcDir = dongmendbSrcDir;
         this->outputDir = outputDir;
         this->outputStyle = outputStyle;
+        this->useStopWords = useStopWords;
     };
+
 };
+
 
 #endif //DONGMENDBAUTOTEST_TEST_EXECUTION_CONFIG_H

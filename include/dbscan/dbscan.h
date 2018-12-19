@@ -33,6 +33,7 @@ public:
     bool initDataPoints(string &sql_select, double radius, int minPTs);
 
     bool DoDBSCANRecursive(int testRound, double radius, int minPTs);
+    bool DoDBSCANRecursive(int testRound, double radius, int minPTs, string outputFileName);
     bool DoDBSCANRecursiveOnDataset();            //DBSCAN递归算法
     bool WriteToOStream(const string fileName, ofstream &of1);    //将聚类结果写入文件
     bool WriteToFile(const int round, const string outputFileName);
