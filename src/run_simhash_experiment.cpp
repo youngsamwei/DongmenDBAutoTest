@@ -73,11 +73,27 @@ int main(int argc, char *argv[]) {
     experiment_config_3.exp_files[L"exp_01_05_delete.c"] = L"/src_experiment/exp_01_stmt_parser/exp_01_05_delete.c";
     experiment_config_3.exp_files[L"exp_07_06_delete.c"] = L"/src_experiment/exp_07_physical_operate/exp_07_06_delete.c";
 
+    /*实验4的实验设置*/
+    wstring experiment_4_expDirName = Utils::FormatWString(L"F:/云班课作业 2018/计算机16-1，2，3-数据库系统-课程设计_实验4_关系代_第%i次",
+                                                           test_round);
+    TestExecutionConfig experiment_config_4(L"experiment_4",
+                                            L"exp_05_02_condition_push_down",
+                                            experiment_4_expDirName,
+                                            L"云班课作业",
+                                            L"F:/dongmendb",
+                                            L"E:/CLion_workspace/DongmenDB",
+                                            L"F:/dongmendb_output_exp_4",
+                                            test_round, &connManager,
+                                            OUTPUT_CONSOLE);
+    experiment_config_4.exp_files[L"exp_05_02_condition_push_down.c"] = L"/src_experiment/exp_05_algebra_opt/exp_05_02_condition_push_down.c";
+
     TestSimhashExperiment tse(&experiment_config_2);
 //    te.run(exp_name, exp_target, exp_dir_name, exp_files, work_dir, dongmendb_src_dir, output_dir);
     tse.run_simhash(&experiment_config_2);
 
     tse.run_simhash(&experiment_config_3);
+
+    tse.run_simhash(&experiment_config_4);
 
     connManager.close_connect();
 }
