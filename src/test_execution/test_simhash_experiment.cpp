@@ -19,7 +19,7 @@ int TestSimhashExperiment::run_simhash() {
     struct _wfinddata_t fb;   //查找相同属性文件的存储结构体
 
     long handle;
-    int resultone = 0;
+    int dir_count = 0;
     int noFile;            //对系统隐藏文件的处理标记
 
     handle = _wfindfirst((config->expDirName + L"/*").c_str(), &fb);
@@ -34,6 +34,7 @@ int TestSimhashExperiment::run_simhash() {
                 //属性值为16，则说明是文件夹，调用任务处理
                 /*对每个学生作业文件夹中的c文件，计算simhash值*/
                 if (fb.attrib == 16) {
+                    dir_count++;
                     wstring dir = config->expDirName + L"/" + fb.name;
                     wstring exp_student_name = fb.name;
                     int underline_pos = exp_student_name.find(L"_");
@@ -68,7 +69,7 @@ int TestSimhashExperiment::run_simhash() {
                                 + to_string(config->round) + ", "
                                 + to_string(file_hash) + ")";
 
-                        cout << endl << sql_insert << endl;
+//                        cout << endl << sql_insert << endl;
                         if (!config->connManager->execute_sql(sql_insert)){
                             cout<<"error in store_test_execution_result. sno: "<<WS2S(sno)<<endl<<"error message"<<config->connManager->get_error_msg()<<endl;
                         };
@@ -77,6 +78,9 @@ int TestSimhashExperiment::run_simhash() {
 
             }
         }
+
+        cout<<WS2S(L"处理")<<dir_count<<WS2S(L"个文件夹.")<<endl;
+
         //关闭文件夹
         _findclose(handle);
     }

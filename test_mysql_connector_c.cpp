@@ -39,8 +39,8 @@ int test_simhash(){
 
 
 int test_simhash_file(){
-    wstring file1 = L"F:\\云班课作业 2018\\计算机16-1，2，3-数据库系统-课程设计_实验2_实现u_第7次\\201401060223_孙仕敏/01-exp_01_04_update.c";
-    wstring file2 = L"F:\\云班课作业 2018\\计算机16-1，2，3-数据库系统-课程设计_实验2_实现u_第7次\\201501030413_毛锟/04-exp_01_04_update.c";
+    wstring file1 = L"F:\\云班课作业 2018\\计算机16-1，2，3-数据库系统-课程设计_实验3_实现D_第10次\\201501030413_毛锟/02-exp_07_06_delete.c";
+    wstring file2 = L"F:\\云班课作业 2018\\计算机16-1，2，3-数据库系统-课程设计_实验3_实现D_第9次\\201501030413_毛锟/02-exp_07_06_delete.c";
 
     string char_file1 = WS2S(file1);
     string char_file2 = WS2S(file2);

@@ -119,7 +119,7 @@ ul_int SimHash::simhash_file(const char *fileName) {
 
         token = std::strtok(strTemp, seps);
         while (token != NULL) {
-            words.push_back(token);
+            words.push_back(strdup(token));
             token = std::strtok(NULL, seps);
         }
 
