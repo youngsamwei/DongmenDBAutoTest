@@ -1,0 +1,179 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+<HEAD>
+ <TITLE>201601060511_李晓康</TITLE>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <script type="text/javascript">
+  <!--
+   function ZweiFrames(URL1,F1,URL2,F2)
+   {
+    parent.frames[F1].location.href=URL1;
+    parent.frames[F2].location.href=URL2;
+   }
+  //-->
+  </script>
+</HEAD>
+<BODY BGCOLOR="#ffffff">
+<HR>
+<H3><CENTER>01-exp_01_04_update.c</CENTER></H3><HR>
+<PRE>
+//
+// Created by Sam on 2018/2/13.
+//
+
+#include &lt;parser/statement.h&gt;
+
+/**
+ * 在现有实现基础上，实现update from子句
+ *
+ * 支持的update语法：
+ *
+ * UPDATE &lt;table_name&gt; SET &lt;field1&gt; = &lt;expr1&gt;[, &lt;field2 = &lt;expr2&gt;, ..]
+ * WHERE &lt;logical_expr&gt;
+ *
+<A NAME="0"></A> * 解析获得 sql_stmt_update 结构
+ */
+/*TODO: parse_sql_stmt_update， update语句解析*/
+<FONT color="#0000ff"><A HREF="javascript:ZweiFrames('match157-1.html#0',3,'match157-top.html#0',1)"><IMG SRC="forward.gif" ALT="other" BORDER="0" ALIGN="right"></A><B>sql_stmt_update *parse_sql_stmt_update(ParserT *pa) {
+
+    /*char *tableName = NULL;
+    arraylist *fields = arraylist_create();
+    arraylist *fieldsExpr = arraylist_create();*/
+
+    sql_stmt_update *s = (sql_stmt_update *) malloc(sizeof(sql_stmt_update));
+    if (!matchToken(pa, TOKEN_RESERVED_WORD, &quot;update&quot;)) {
+        strcpy(pa-&gt;parserMessage, &quot;no update.&quot;);
+        return NULL;
+    }
+    TokenT *to = parseNextToken(pa);
+    to = parseNextToken(pa);
+    if (to-&gt;type == TOKEN_WORD)
+        strcpy(s-&gt;tableName, to-&gt;text);
+    else {
+        strcpy(pa-&gt;parserMessage, &quot;no table name.&quot;);
+        return NULL;
+    }
+
+    to = parseEatAndNextToken(pa);
+    if (!matchToken(pa, TOKEN_RESERVED_WORD, &quot;set&quot;)) {
+        strcpy(pa-&gt;parserMessage, &quot;no set.&quot;);
+        return NULL;
+    }
+
+    to = parseNextToken(pa);
+
+    while (to != NULL ) {
+        if(to-&gt;type == TOKEN_WORD || to-&gt;type == TOKEN_COMMA) {
+            if (to-&gt;type == TOKEN_COMMA) {
+                /*若是逗号，则需要跳过逗号*/
+                to = parseEatAndNextToken(pa);
+            }
+            /*获取字段名*/
+            if (to-&gt;type == TOKEN_WORD) {
+                char *fn = new_id_name();
+                strcpy(fn, to-&gt;text);
+                arraylist_add(s-&gt;fields, fn);
+
+            } else {
+                strcpy(pa-&gt;parserMessage, &quot;no project name.&quot;);
+                return NULL;
+            }
+
+            to = parseEatAndNextToken(pa);
+            if (!matchToken(pa, TOKEN_EQ, &quot;=&quot;)) {
+                strcpy(pa-&gt;parserMessage, &quot;no =.&quot;);
+                return NULL;
+            }
+
+            Expression *expr = parseExpressionRD(pa);
+            arraylist_add(s-&gt;fieldsExpr, expr);
+
+            to = parseNextToken(pa);
+            if (to == NULL)
+                break;
+        }
+    }
+
+    Expression *wh = NULL;
+    if (to != NULL) {
+        if (!matchToken(pa, TOKEN_RESERVED_WORD, &quot;where&quot;)) {
+            strcpy(pa-&gt;parserMessage, &quot;no where.&quot;);
+            return NULL;
+        }
+        wh = parseExpressionRD(pa);
+        if (pa-&gt;parserStateType == PARSER_WRONG)
+            return NULL;
+    }
+
+
+
+    TableReference_t *ref = TableReference_make(s-&gt;tableName, NULL);
+    SRA_t *table = SRATable(ref);
+    s-&gt;where = table;
+    if (wh != NULL)
+        s-&gt;where = SRASelect(table, wh);
+
+    return s;
+}</B></FONT>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</PRE>
+<HR>
+<H3><CENTER>02-exp_07_05_update.c</CENTER></H3><HR>
+<PRE>
+//
+// Created by sam on 2018/9/18.
+//
+#include &quot;physicalplan/physicalplan.h&quot;
+<A NAME="1"></A>
+/*执行 update 语句*/
+/*TODO: plan_execute_update， update语句执行*/
+<FONT color="#f63526"><A HREF="javascript:ZweiFrames('match157-1.html#1',3,'match157-top.html#1',1)"><IMG SRC="forward.gif" ALT="other" BORDER="0" ALIGN="right"></A><B>int plan_execute_update(dongmendb *db, sql_stmt_update *sqlStmtUpdate , transaction *tx) {
+    /*删除语句以select的物理操作为基础实现。
+     * 1. 使用 sql_stmt_update 的条件参数，调用 physical_scan_select_create 创建select的物理计划并初始化;
+     * 2. 执行 select 的物理计划，完成update操作
+     * */
+    char *tn = sqlStmtUpdate-&gt;tableName;
+    arraylist *f = sqlStmtUpdate-&gt;fields; //set fields 被更新的字段列表
+    arraylist *fe = sqlStmtUpdate-&gt;fieldsExpr;  //set fields expression 新值(表达式)列表
+    SRA_t *w = sqlStmtUpdate-&gt;where;
+    physical_scan *p = physical_scan_generate(db, w, tx);
+    p-&gt;beforeFirst(p);
+    variant *nowv = (variant *) malloc(sizeof(variant));
+    while ((p-&gt;next(p))!=NULL) {
+
+        for (size_t i = 0; i &lt; f-&gt;size; i++) {
+            char *n = arraylist_get(f, i);
+            Expression *ex = arraylist_get(fe, i);
+            physical_scan_evaluate_expression(ex, p, nowv);
+            if (nowv-&gt;type = DATA_TYPE_CHAR) {
+                p-&gt;setString(p, tn, n, nowv-&gt;strValue);
+            } else if (nowv-&gt;type = DATA_TYPE_INT) {
+                p-&gt;setInt(p, tn, n, nowv-&gt;intValue);
+            } else {
+                return DONGMENDB_EINVALIDSQL;
+            }
+        }
+    }
+    return DONGMENDB_OK;
+};</B></FONT>
+</PRE>
+</BODY>
+</HTML>

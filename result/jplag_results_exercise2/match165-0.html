@@ -1,0 +1,161 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+<HEAD>
+ <TITLE>201601060439_范子齐</TITLE>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <script type="text/javascript">
+  <!--
+   function ZweiFrames(URL1,F1,URL2,F2)
+   {
+    parent.frames[F1].location.href=URL1;
+    parent.frames[F2].location.href=URL2;
+   }
+  //-->
+  </script>
+</HEAD>
+<BODY BGCOLOR="#ffffff">
+<HR>
+<H3><CENTER>01-exp_01_04_update.c</CENTER></H3><HR>
+<PRE>
+#include &lt;parser/statement.h&gt;
+
+/**
+ * 在现有实现基础上，实现update from子句
+ *
+ * 支持的update语法：
+ *
+ * UPDATE &lt;table_name&gt; SET &lt;field1&gt; = &lt;expr1&gt;[, &lt;field2 = &lt;expr2&gt;, ..]
+ * WHERE &lt;logical_expr&gt;
+ * update student SET name = 'xiaowang'
+ * UPDATE Person SET Address = 'Zhongshan 23', City = 'Nanjing' WHERE LastName = 'Wilson'
+ *
+ * 解析获得 sql_stmt_update 结构
+<A NAME="0"></A> */
+
+/*TODO: parse_sql_stmt_update， update语句解析*/
+<FONT color="#0000ff"><A HREF="javascript:ZweiFrames('match165-1.html#0',3,'match165-top.html#0',1)"><IMG SRC="forward.gif" ALT="other" BORDER="0" ALIGN="right"></A><B>sql_stmt_update *parse_sql_stmt_update(ParserT *parser) {
+    //要修改哪个表
+    char *tableName = NULL;
+    //要修改哪些属性
+    arraylist *fields = arraylist_create();
+    //要修改为的属性值
+    arraylist *fieldsExpr = arraylist_create();
+    //创建token，在获取列名的时候第一次使用,获取token判断表名
+    TokenT *token = parseNextToken(parser);
+    //keyword &quot;update&quot;
+    if (!matchToken(parser, TOKEN_RESERVED_WORD, &quot;update&quot;)) {
+        strcpy(parser-&gt;parserMessage, &quot;语法错误.&quot;);
+        return NULL;
+    }
+    token = parseNextToken(parser);
+    //获取表名，否则输出未获得
+    if (token-&gt;type == TOKEN_WORD) {
+        tableName = new_id_name();
+        strcpy(tableName, token-&gt;text);
+    } else {
+        strcpy(parser-&gt;parserMessage, &quot;invalid sql: missing table name.&quot;);
+        return NULL;
+    }
+    //keyword &quot;set&quot;
+    token = parseEatAndNextToken(parser);
+    if (!matchToken(parser, TOKEN_RESERVED_WORD, &quot;set&quot;)) {
+        strcpy(parser-&gt;parserMessage, &quot;语法错误.&quot;);
+        return NULL;
+    }
+    token = parseNextToken(parser);
+    while (token != NULL &amp;&amp; (token-&gt;type == TOKEN_WORD || token-&gt;type == TOKEN_COMMA)) {
+        if (token-&gt;type == TOKEN_COMMA){
+            //token_comma判断逗号，是就去掉并获取下一个字段
+            token = parseEatAndNextToken(parser);
+        }
+        //获取要修改的属性列
+        if (token-&gt;type == TOKEN_WORD) {
+            char *fieldName = new_id_name();
+            strcpy(fieldName, token-&gt;text);
+            arraylist_add(fields, fieldName);
+        } else {
+            strcpy(parser-&gt;parserMessage, &quot;invalid sql: missing fields name.&quot;);
+            return NULL;
+        }
+        token = parseEatAndNextToken(parser);
+        //判断等号，去掉，下一个
+        if (!matchToken(parser, TOKEN_EQ, &quot;=&quot;)) {
+            strcpy(parser-&gt;parserMessage, &quot;invalid sql: missing =.&quot;);
+            return NULL;
+        }
+        //expression
+        Expression *expr0 = parseExpressionRD(parser);
+        arraylist_add(fieldsExpr, expr0);
+        token = parseNextToken(parser);
+        if (token == NULL) {
+            break;
+        }
+    }
+    Expression *whereExpr = NULL;
+    if (token !=NULL) {
+        if (!matchToken(parser, TOKEN_RESERVED_WORD, &quot;where&quot;)) {
+            strcpy(parser-&gt;parserMessage, &quot;语法错误.&quot;);
+            return NULL;
+        }
+        whereExpr = parseExpressionRD(parser);
+        if (parser-&gt;parserStateType == PARSER_WRONG) {
+            return NULL;
+        }
+    }
+    sql_stmt_update *sqlStmtUpdate = (sql_stmt_update *) malloc(sizeof(sql_stmt_update));
+    sqlStmtUpdate-&gt;tableName = tableName;
+    sqlStmtUpdate-&gt;fields = fields;
+    sqlStmtUpdate-&gt;fieldsExpr = fieldsExpr;
+    TableReference_t *ref =   TableReference_make(tableName, NULL);
+    SRA_t *table =  SRATable(ref);
+    sqlStmtUpdate-&gt;where = table;
+    if (whereExpr != NULL) {
+        sqlStmtUpdate-&gt;where = SRASelect(table, whereExpr);
+    }
+    return sqlStmtUpdate;
+};</B></FONT>
+</PRE>
+<HR>
+<H3><CENTER>02-exp_07_05_update.c</CENTER></H3><HR>
+<PRE>
+//
+// Created by sam on 2018/9/18.
+//
+#include &quot;physicalplan/physicalplan.h&quot;
+
+<A NAME="1"></A>/*执行 update 语句*/
+
+/*TODO: plan_execute_update， update语句执行*/
+<FONT color="#f63526"><A HREF="javascript:ZweiFrames('match165-1.html#1',3,'match165-top.html#1',1)"><IMG SRC="forward.gif" ALT="other" BORDER="0" ALIGN="right"></A><B>int plan_execute_update(dongmendb *db, sql_stmt_update *sqlStmtUpdate , transaction *tx) {
+
+
+    //fprintf(stderr, &quot;TODO: update is not implemented yet. in plan_execute_update \n&quot;);
+    physical_scan *plan = physical_scan_generate(db, sqlStmtUpdate-&gt;where, tx);
+
+    plan-&gt;beforeFirst(plan);
+
+    while(plan-&gt;next(plan))
+    {
+
+        for(size_t i=0;i&lt;sqlStmtUpdate-&gt;fields-&gt;size;i++){
+            char *fieldname=arraylist_get(sqlStmtUpdate-&gt;fields,i);
+            variant *var=malloc(sizeof(variant));
+            physical_scan_evaluate_expression(arraylist_get(sqlStmtUpdate-&gt;fieldsExpr,i),plan,var);
+            if(var-&gt;type==DATA_TYPE_INT){
+                plan-&gt;setInt(plan,sqlStmtUpdate-&gt;tableName,fieldname,var-&gt;intValue);
+            }
+            else if(var-&gt;type==DATA_TYPE_CHAR){
+                plan-&gt;setString(plan,sqlStmtUpdate-&gt;tableName,fieldname,var-&gt;strValue);
+            }
+        }
+    }
+    plan-&gt;close(plan);
+
+
+
+
+    return DONGMENDB_OK;
+};</B></FONT>
+</PRE>
+</BODY>
+</HTML>

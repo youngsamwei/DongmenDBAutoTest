@@ -1,0 +1,120 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+<HEAD>
+ <TITLE>201601060315_马瑞辰</TITLE>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <script type="text/javascript">
+  <!--
+   function ZweiFrames(URL1,F1,URL2,F2)
+   {
+    parent.frames[F1].location.href=URL1;
+    parent.frames[F2].location.href=URL2;
+   }
+  //-->
+  </script>
+</HEAD>
+<BODY BGCOLOR="#ffffff" style="margin-left:25">
+<HR>
+<H3><CENTER>04-exp_01_05_delete(1).c</CENTER></H3><HR>
+<PRE>
+//
+// Created by Sam on 2018/2/13.
+//
+
+#include &lt;parser/statement.h&gt;
+
+/**
+ * 在现有实现基础上，实现delete from子句
+ *
+ *  支持的delete语法：
+ *
+ *  DELETE FROM &lt;table_nbame&gt;
+ *  WHERE &lt;logical_expr&gt;
+ *
+<A NAME="1"></A> * 解析获得 sql_stmt_delete 结构
+ */
+
+<FONT color="#f63526"><div style="position:absolute;left:0"><A HREF="javascript:ZweiFrames('match191-0.html#1',2,'match191-top.html#1',1)"><IMG SRC="back.gif" ALT="other" BORDER="0" ALIGN="left"></A></div><B>sql_stmt_delete *parse_sql_stmt_delete(ParserT *parser){
+
+    //获取token
+    TokenT *token = parseNextToken(parser);
+    //判断当前Token是否是“delete”和保留字,如果不是，返回Null，如果是吃掉当前Token并获取下一Token
+    if (!matchToken(parser, TOKEN_RESERVED_WORD, &quot;delete&quot;)) {
+        return NULL;
+    }
+    /*
+    //判断下一token是否是&quot;from&quot;
+    token = parseNextToken(parser);
+    if (!matchToken(parser, TOKEN_RESERVED_WORD, &quot;from&quot;)) {
+        strcpy(parser-&gt;parserMessage, &quot;invalid sql: should be from.&quot;);
+        return NULL;
+    }
+   */
+    //保存下来表名称，如果不是表名，提示错误信息
+    token = parseNextToken(parser);
+    char *tableName = NULL;
+    if (token-&gt;type == TOKEN_WORD) {
+        tableName = new_id_name();
+        strcpy(tableName, token-&gt;text);
+
+    } else {
+        strcpy(parser-&gt;parserMessage, &quot;invalid sql: missing table name.&quot;);
+        return NULL;
+    }
+    SRA_t *tablesExpr = parseTablesExpr(parser);
+
+    /*
+     * 解析并保存where表达式
+     * */
+
+    //首先判断是否是where关键字
+    token = parseNextToken(parser);
+    if(!matchToken(parser, TOKEN_RESERVED_WORD, &quot;where&quot;)){
+        strcpy(parser-&gt;parserMessage, &quot;语法错误.&quot;);
+        return NULL;
+    }
+   //获取where表达式
+    Expression *whereExpr = parseExpressionRD(parser);
+    if (parser-&gt;parserStateType == PARSER_WRONG) {
+
+        return NULL;
+    }
+    SRA_t *where = SRASelect(tablesExpr, whereExpr);
+    //返回解析信息
+    sql_stmt_delete *sqlStmtDelete = (sql_stmt_delete *)calloc(sizeof(sql_stmt_delete),1);
+    sqlStmtDelete-&gt;tableName=tableName;
+    sqlStmtDelete-&gt;where=where;
+    return sqlStmtDelete;
+};</B></FONT>
+</PRE>
+<HR>
+<H3><CENTER>05-exp_07_06_delete(1).c</CENTER></H3><HR>
+<PRE>
+//
+// Created by sam on 2018/9/18.
+//
+#include &quot;physicalplan/physicalplan.h&quot;
+<A NAME="0"></A>
+/*执行delete语句*/
+
+<FONT color="#0000ff"><div style="position:absolute;left:0"><A HREF="javascript:ZweiFrames('match191-0.html#0',2,'match191-top.html#0',1)"><IMG SRC="back.gif" ALT="other" BORDER="0" ALIGN="left"></A></div><B>int plan_execute_delete(dongmendb *db, sql_stmt_delete *sqlStmtDelete,  transaction *tx){
+
+    /*删除语句以select的物理操作为基础实现。
+     * 1. 使用 sql_stmt_delete 的条件参数，调用 physical_scan_select_create 创建select的物理计划并初始化;
+     * 2. 执行 select 的物理计划，完成 delete 操作
+     * */
+    char *tableName=sqlStmtDelete-&gt;tableName;
+    SRA_t *sra=sqlStmtDelete-&gt;where;
+    physical_scan *plan = physical_scan_generate(db,sra,tx);
+    plan-&gt;beforeFirst(plan);
+    int num=0;
+    while(plan-&gt;next(plan)){
+        plan-&gt;deleterec(plan);
+        num++;
+    }
+    plan-&gt;close(plan);
+    return num;
+};</B></FONT>
+</PRE>
+</BODY>
+</HTML>

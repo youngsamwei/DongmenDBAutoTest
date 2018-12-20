@@ -1,0 +1,105 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+<HEAD>
+ <TITLE>201601060329_杨肖铭</TITLE>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <script type="text/javascript">
+  <!--
+   function ZweiFrames(URL1,F1,URL2,F2)
+   {
+    parent.frames[F1].location.href=URL1;
+    parent.frames[F2].location.href=URL2;
+   }
+  //-->
+  </script>
+</HEAD>
+<BODY BGCOLOR="#ffffff" style="margin-left:25">
+<HR>
+<H3><CENTER>03-exp_01_05_delete.c</CENTER></H3><HR>
+<PRE>
+//
+// Created by Sam on 2018/2/13.
+//
+
+#include &lt;parser/statement.h&gt;
+
+/**
+ * 在现有实现基础上，实现delete from子句
+ *
+ *  支持的delete语法：
+ *
+ *  DELETE FROM &lt;table_nbame&gt;
+ *  WHERE &lt;logical_expr&gt;
+ *
+ * 解析获得 sql_stmt_delete 结构
+ */
+/*char * parseTablesName(ParserT *parser) {
+    TokenT *token = parseNextToken(parser);
+   if (token-&gt;type == TOKEN_WORD) {
+        char *tableName = new_id_name();
+       strcpy(tableName, token-&gt;text);
+        TokenT *token = parseEatAndNextToken(parser);
+        return tableName;
+   } else {
+       strcpy(parser-&gt;parserMessage, &quot;语法错误.&quot;);
+        return NULL;
+<A NAME="0"></A>    }
+
+}*/
+<FONT color="#0000ff"><div style="position:absolute;left:0"><A HREF="javascript:ZweiFrames('match150-0.html#0',2,'match150-top.html#0',1)"><IMG SRC="back.gif" ALT="other" BORDER="0" ALIGN="left"></A></div><B>sql_stmt_delete *parse_sql_stmt_delete(ParserT *parser){
+    char * yxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxm_tableName =NULL;
+    sql_stmt_delete *yxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxm_sqlStmtDelete = (sql_stmt_delete *)calloc(sizeof(sql_stmt_delete),1);
+    TokenT *token = parseNextToken(parser);
+    if(!matchToken(parser, TOKEN_RESERVED_WORD, &quot;delete&quot;)) {
+        strcpy(parser-&gt;parserMessage, &quot;语法错误.&quot;);
+        return NULL;
+    }
+  /*  if(!matchToken(parser, TOKEN_RESERVED_WORD, &quot;from&quot;)) {
+        strcpy(parser-&gt;parserMessage, &quot;语法错误.&quot;);
+        return NULL;
+    }*/
+    token = parseNextToken(parser);
+    // char * tableName = parseTablesName(parser);
+
+    if (token!=NULL &amp;&amp; token-&gt;type == TOKEN_WORD) {
+        yxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxm_tableName = new_id_name();
+        strcpy(yxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxm_tableName, token-&gt;text);
+    } else {
+        strcpy(parser-&gt;parserMessage, &quot;invalid sql: missing table name.&quot;);
+        return NULL;
+    }
+    yxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxm_sqlStmtDelete-&gt;tableName = yxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxm_tableName;
+    if (parser-&gt;parserStateType == PARSER_WRONG) {
+        return NULL;
+    }
+    token = parseNextToken(parser);
+    if (token == NULL || token-&gt;type == TOKEN_SEMICOLON) {
+        TableReference_t *ref =   TableReference_make(yxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxm_tableName, NULL);
+        SRA_t *table =  SRATable(ref);
+//        SRA_t *project = SRASelect(table, NULL);
+        yxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxm_sqlStmtDelete-&gt;where = table;
+        return yxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxm_sqlStmtDelete;
+    }
+    // token = parseNextToken(parser);
+    token = parseEatAndNextToken(parser);
+    if(!matchToken(parser, TOKEN_RESERVED_WORD, &quot;where&quot;)){
+        strcpy(parser-&gt;parserMessage, &quot;error where.&quot;);
+        return NULL;
+    }
+    token = parseNextToken(parser);
+    Expression *yxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxm_whereExpr = parseExpressionRD(parser);
+    if (parser-&gt;parserStateType == PARSER_WRONG) {
+        return NULL;
+    }
+    token = parseNextToken(parser);
+    if (token == NULL || token-&gt;type == TOKEN_SEMICOLON) {
+        TableReference_t *ref =   TableReference_make(yxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxm_tableName, NULL);
+        SRA_t *yxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxm_table =  SRATable(ref);
+        SRA_t *yxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxm_select = SRASelect(yxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxm_table, yxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxm_whereExpr);
+        yxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxm_sqlStmtDelete-&gt;where = yxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxm_select;
+        return yxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxmyxm_sqlStmtDelete;
+    }
+};</B></FONT>
+</PRE>
+</BODY>
+</HTML>

@@ -1,0 +1,124 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+<HEAD>
+ <TITLE>201601060419_王超</TITLE>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <script type="text/javascript">
+  <!--
+   function ZweiFrames(URL1,F1,URL2,F2)
+   {
+    parent.frames[F1].location.href=URL1;
+    parent.frames[F2].location.href=URL2;
+   }
+  //-->
+  </script>
+</HEAD>
+<BODY BGCOLOR="#ffffff" style="margin-left:25">
+<HR>
+<H3><CENTER>01-exp_05_02_condition_push_down.c</CENTER></H3><HR>
+<PRE>
+//
+// Created by Sam on 2018/2/13.
+//
+
+#include &lt;dongmensql/optimizer.h&gt;
+#include &lt;dongmensql/dongmensql.h&gt;
+/**
+<A NAME="0"></A> * 使用关于选择的等价变换规则将条件下推。
+ *
+ */
+<FONT color="#0000ff"><div style="position:absolute;left:0"><A HREF="javascript:ZweiFrames('match3-0.html#0',2,'match3-top.html#0',1)"><IMG SRC="back.gif" ALT="other" BORDER="0" ALIGN="left"></A></div><B>int opt_expr_test(Expression *expr) {
+    /*term不为空，则表示expr是term，可以终止*/
+    if (expr-&gt;term != NULL) {
+        return 0;
+    } else if (expr-&gt;opType == TOKEN_AND) {
+        return 1;
+    }
+    return 0;
+
+}
+
+SRA_t *dongmengdb_condition_series(SRA_t *sra){
+
+   // printf(&quot;\n12121\n&quot;);
+    switch(sra-&gt;t){
+        case SRA_TABLE:</B></FONT>
+            return sra;
+        case SRA_SELECT:{
+            SRA_Select_t select = sra-&gt;select;
+            Expression *expr = select.cond;
+            //SRA_print(sra);
+            SRA_t *newSra = sra-&gt;select.sra;
+            int ret = opt_expr_test(expr);
+            //printf(&quot;我到这了！\n&quot;);
+            if(ret){
+                //printf(&quot;11111111&quot;);
+                while(expr){
+                    if(expr-&gt;opType == TOKEN_AND){
+                        expr = expr -&gt; nextexpr;
+                    }
+//                    expression_print(expr,NULL);
+                    //printf(&quot;%s\n&quot;,expr-&gt;opType);
+                    if(expr-&gt;opType == TOKEN_LT || expr-&gt;opType == TOKEN_GT || expr-&gt;opType == TOKEN_EQ || expr-&gt;opType == TOKEN_NOT_EQUAL || expr-&gt;opType == TOKEN_LE || expr-&gt;opType == TOKEN_GE){
+                        newSra = SRASelect(newSra,expr);
+                    }
+                    expr = expr -&gt; nextexpr;
+                }
+            }
+            //SRA_print(newSra);
+            //sra-&gt;select.sra = newSra;
+            //sra-&gt;select.sra = newSra;
+            sra-&gt;select = newSra-&gt;select;
+            //newSra-&gt;select.sra = sra-&gt;select.sra;
+            //SRA_print(sra);
+            dongmengdb_condition_series(select.sra);
+            break;
+        };
+        case SRA_PROJECT:
+            dongmengdb_condition_series(sra-&gt;project.sra);
+            break;
+        case SRA_UNION:
+        case SRA_EXCEPT:
+        case SRA_INTERSECT:
+            dongmengdb_condition_series(sra-&gt;binary.sra1);
+            dongmengdb_condition_series(sra-&gt;binary.sra2);
+            break;
+        case SRA_JOIN:
+            dongmengdb_condition_series(sra-&gt;join.sra1);
+            dongmengdb_condition_series(sra-&gt;join.sra2);
+            break;
+    }
+}
+SRA_t *dongmengdb_condition_pushdown(SRA_t *sra){
+
+    return sra;
+}
+/*输入一个关系代数表达式，输出优化后的关系代数表达式
+ * 要求：在查询条件符合合取范式的前提下，根据等价变换规则将查询条件移动至合适的位置。
+ * */
+SRA_t *dongmengdb_algebra_optimize_condition_pushdown(SRA_t *sra){
+
+    /*初始关系代数语法树sra由三个操作构成：SRA_PROJECT -&gt; SRA_SELECT -&gt; SRA_JOIN，即对应语法树中三个节点。*/
+
+    /*第一步：.等价变换：将SRA_SELECT类型的节点进行条件串接*/
+
+        /*1.1 在sra中找到每个SRA_Select节点 */
+        /*1.2 检查每个SRA_Select节点中的条件是不是满足串接条件：多条件且用and连接*/
+        /*1.3 若满足串接条件则：创建一组新的串接的SRA_Select节点，等价替换当前的SRA_Select节点*/
+    dongmengdb_condition_series(sra);
+    SRA_print(sra);
+    dongmengdb_condition_pushdown(sra);
+    SRA_print(sra);
+    /*第二步：等价变换：条件交换*/
+        /*2.1 在sra中找到每个SRA_Select节点*/
+        /*2.2 对每个SRA_Select节点做以下处理：
+         * 在sra中查找 SRA_Select 节点应该在的最优位置：
+         *     若子操作也是SRA_Select，则可交换；
+         *     若子操作是笛卡尔积，则可交换，需要判断SRA_Select所包含的属性属于笛卡尔积的哪个子操作
+         * 最后将SRA_Select类型的节点移动到语法树的最优位置。
+         * */
+    return sra;
+}
+</PRE>
+</BODY>
+</HTML>

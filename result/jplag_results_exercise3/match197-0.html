@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+<HEAD>
+ <TITLE>201601060521_谭婷</TITLE>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <script type="text/javascript">
+  <!--
+   function ZweiFrames(URL1,F1,URL2,F2)
+   {
+    parent.frames[F1].location.href=URL1;
+    parent.frames[F2].location.href=URL2;
+   }
+  //-->
+  </script>
+</HEAD>
+<BODY BGCOLOR="#ffffff">
+<HR>
+<H3><CENTER>03-exp_01_05_delete.c</CENTER></H3><HR>
+<PRE>
+<A NAME="0"></A>#include &lt;parser/statement.h&gt;
+
+<FONT color="#0000ff"><A HREF="javascript:ZweiFrames('match197-1.html#0',3,'match197-top.html#0',1)"><IMG SRC="forward.gif" ALT="other" BORDER="0" ALIGN="right"></A><B>sql_stmt_delete *parse_sql_stmt_delete(ParserT *parser){
+
+    char *tttableName = NULL;
+    //delete
+    TokenT *tttoken = parseNextToken(parser);
+    if(!matchToken(parser,TOKEN_RESERVED_WORD,&quot;delete&quot;)){
+        return NULL;
+    }
+
+    //table Name
+    tttoken = parseNextToken(parser);
+    if(tttoken-&gt;type == TOKEN_WORD){
+        tttableName = new_id_name();
+        strcpy(tttableName,tttoken-&gt;text);
+    }else{
+        return NULL;
+    }
+
+    //where
+    tttoken = parseEatAndNextToken(parser);</B></FONT>
+    if(!matchToken(parser,TOKEN_RESERVED_WORD,&quot;where&quot;)){
+        return NULL;
+    }
+
+    //
+    TableReference_t *ttref1 = TableReference_make(tttableName,NULL);
+<A NAME="1"></A>    SRA_t *ttwhere = SRATable(ttref1);
+
+    //where����
+<FONT color="#f63526"><A HREF="javascript:ZweiFrames('match197-1.html#1',3,'match197-top.html#1',1)"><IMG SRC="forward.gif" ALT="other" BORDER="0" ALIGN="right"></A><B>    tttoken = parseNextToken(parser);
+    Expression *ttwhereExpr = parseExpressionRD(parser);
+    ttwhere = SRASelect(ttwhere,ttwhereExpr);
+    if(parser-&gt;parserStateType ==PARSER_WRONG){
+        return NULL;
+    }
+
+    sql_stmt_delete *ttsqlStmtDelete = (sql_stmt_delete*)calloc(sizeof(sql_stmt_delete),1);
+    ttsqlStmtDelete-&gt;tableName = tttableName;
+    SRA_print(ttwhere);
+    ttsqlStmtDelete-&gt;where = ttwhere;
+
+    return ttsqlStmtDelete;
+};</B></FONT>
+</PRE>
+</BODY>
+</HTML>

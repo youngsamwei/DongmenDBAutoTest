@@ -1,0 +1,89 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+<HEAD>
+ <TITLE>201601060525_夏天宇</TITLE>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <script type="text/javascript">
+  <!--
+   function ZweiFrames(URL1,F1,URL2,F2)
+   {
+    parent.frames[F1].location.href=URL1;
+    parent.frames[F2].location.href=URL2;
+   }
+  //-->
+  </script>
+</HEAD>
+<BODY BGCOLOR="#ffffff">
+<HR>
+<H3><CENTER>02-exp_01_05_delete.c</CENTER></H3><HR>
+<PRE>
+//
+// Created by Sam on 2018/2/13.
+//
+
+#include &lt;parser/statement.h&gt;
+#define TEN 10
+#define TWO 2
+#define THREE 3
+#define ONE_t 1
+#define ZERO_t 0
+/**
+ * 在现有实现基础上，实现delete from子句
+ *
+ *  支持的delete语法：
+ *
+ *  DELETE FROM &lt;table_nbame&gt;
+ *  WHERE &lt;logical_expr&gt;
+ *
+ * 解析获得 sql_stmt_delete 结构
+<A NAME="0"></A> */
+bool IS_MATCH_WTF(TokenT* token, TokenType a);
+
+<FONT color="#0000ff"><A HREF="javascript:ZweiFrames('match149-1.html#0',3,'match149-top.html#0',1)"><IMG SRC="forward.gif" ALT="other" BORDER="0" ALIGN="right"></A><B>sql_stmt_delete *parse_sql_stmt_delete(ParserT *parser){
+    SRA_t *uu_yy_x_t_y_ss_where_xtyxty = NULL;
+    TokenT *nns_res_xty_xxty_up_token_live_of = NULL;
+    char *q_a_qq_x_t_y_xty_abcd_tableName_ts_s_s = NULL;
+    // update &lt;table&gt; set &lt;&gt; = &lt;&gt;
+    //判断delete是否存在
+    if (!matchToken(parser, TOKEN_RESERVED_WORD, &quot;delete&quot;)) {
+        strcpy(parser-&gt;parserMessage, &quot;worning!!! worning!!!worning!!!invalid sql: delete.&quot;);
+        return NULL;
+    }
+    //判断表是否存在
+    nns_res_xty_xxty_up_token_live_of = parseNextToken(parser);
+    //  fprintf(stderr,token-&gt;text);
+    if (IS_MATCH_WTF(nns_res_xty_xxty_up_token_live_of,TOKEN_WORD)) {
+        q_a_qq_x_t_y_xty_abcd_tableName_ts_s_s = new_id_name();
+        strcpy(q_a_qq_x_t_y_xty_abcd_tableName_ts_s_s, nns_res_xty_xxty_up_token_live_of-&gt;text);
+    } else {
+        strcpy(parser-&gt;parserMessage, &quot;worning!!! worning!worning!worning!worning!worning!worning！invalid sql: missing table name.&quot;);
+        return NULL;
+    }
+    //where
+    //表达式
+    uu_yy_x_t_y_ss_where_xtyxty = SRATable(TableReference_make(q_a_qq_x_t_y_xty_abcd_tableName_ts_s_s, NULL));
+    nns_res_xty_xxty_up_token_live_of = parseEatAndNextToken(parser);//Token(parser);
+    if(!matchToken(parser, TOKEN_RESERVED_WORD, &quot;where&quot;)) {
+        strcpy(parser-&gt;parserMessage, &quot;worning!!! worning!worning!worning!worning!worning!worning！invalid sql: missing Where.&quot;);
+        return NULL;
+    } else
+    {
+        Expression *whereExpr = parseExpressionRD(parser);
+        uu_yy_x_t_y_ss_where_xtyxty = SRASelect(uu_yy_x_t_y_ss_where_xtyxty, whereExpr);
+    }
+    sql_stmt_delete  *sqlStmtDelete = (sql_stmt_delete *)calloc(sizeof(sql_stmt_delete),1);
+    sqlStmtDelete-&gt;tableName = q_a_qq_x_t_y_xty_abcd_tableName_ts_s_s;
+    sqlStmtDelete-&gt;where = uu_yy_x_t_y_ss_where_xtyxty;
+    // fprintf(stderr,&quot;worning!!! worning!worning!worning!worning!worning!worning！the end happying ending......\n&quot;);
+    return sqlStmtDelete;
+};
+
+bool IS_MATCH_WTF(TokenT* token, TokenType a)
+{
+    if(token!=NULL &amp;&amp; token-&gt;type == a)
+        return true;
+    return  false;
+}</B></FONT>
+</PRE>
+</BODY>
+</HTML>

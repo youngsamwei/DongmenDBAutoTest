@@ -1,0 +1,188 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+<HEAD>
+ <TITLE>201601060331_尹振</TITLE>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <script type="text/javascript">
+  <!--
+   function ZweiFrames(URL1,F1,URL2,F2)
+   {
+    parent.frames[F1].location.href=URL1;
+    parent.frames[F2].location.href=URL2;
+   }
+  //-->
+  </script>
+</HEAD>
+<BODY BGCOLOR="#ffffff">
+<HR>
+<H3><CENTER>02-exp_01_04_update.c</CENTER></H3><HR>
+<PRE>
+//
+// Created by Sam on 2018/2/13.
+//
+
+#include &lt;parser/statement.h&gt;
+
+/**
+ * 在现有实现基础上，实现update from子句
+ *
+ * 支持的update语法：
+ *
+ * UPDATE &lt;table_name&gt; SET &lt;field1&gt; = &lt;expr1&gt;[, &lt;field2 = &lt;expr2&gt;, ..]
+ * WHERE &lt;logical_expr&gt;
+ *
+<A NAME="0"></A> * 解析获得 sql_stmt_update 结构
+ */
+
+<FONT color="#0000ff"><A HREF="javascript:ZweiFrames('match85-1.html#0',3,'match85-top.html#0',1)"><IMG SRC="forward.gif" ALT="other" BORDER="0" ALIGN="right"></A><B>int parseAssignExpr(ParserT *parser, arraylist *fields, arraylist *fieldsExpr);
+
+/* parse_sql_stmt_update， update语句解析*/
+sql_stmt_update *parse_sql_stmt_update(ParserT *parser) {
+    char *tableName = NULL;
+    arraylist *fields = arraylist_create();
+    arraylist *fieldsExpr = arraylist_create();
+    SRA_t *where = NULL;
+
+    TokenT *token;
+
+    // update
+    if (!matchToken(parser, TOKEN_RESERVED_WORD, &quot;update&quot;)) {
+        return NULL;
+    }
+
+    // table_name
+    token = parseNextToken(parser);
+    if (token-&gt;type == TOKEN_WORD) {
+        tableName = new_id_name();
+        strcpy(tableName, token-&gt;text);
+    } else {
+        strcpy(parser-&gt;parserMessage, &quot;invalid sql: missing table name.&quot;);
+        return NULL;
+    }
+
+    parseEatAndNextToken(parser);
+
+    // set
+    if (!matchToken(parser, TOKEN_RESERVED_WORD, &quot;set&quot;)) {
+        return NULL;
+    }
+
+    // &lt;field1&gt; = &lt;expr1&gt;[, &lt;field2 = &lt;expr2&gt;, ..]
+    if (!parseAssignExpr(parser, fields, fieldsExpr)) {
+        return NULL;
+    }
+
+    // where
+    where = SRATable(TableReference_make(tableName, NULL));
+    if (matchToken(parser, TOKEN_RESERVED_WORD, &quot;where&quot;)) {
+        Expression *cond = parseExpressionRD(parser);
+        where = SRASelect(where, cond);
+    }
+
+    // return
+    sql_stmt_update *sqlStmtUpdate = (sql_stmt_update *) calloc(sizeof(sql_stmt_update), 1);
+    sqlStmtUpdate-&gt;tableName = tableName;
+    sqlStmtUpdate-&gt;fields = fields;
+    sqlStmtUpdate-&gt;fieldsExpr = fieldsExpr;
+    sqlStmtUpdate-&gt;where = where;
+
+    return sqlStmtUpdate;
+};
+
+int parseAssignExpr(ParserT *parser, arraylist *fields, arraylist *fieldsExpr) {
+    TokenT *token = parseNextToken(parser);
+    while (1) {
+        // field
+        if (token == NULL || token-&gt;type != TOKEN_WORD) {
+            strcpy(parser-&gt;parserMessage, &quot;invalid sql: missing field name.&quot;);
+            return 0;
+        }
+
+        char *fieldName = new_id_name();
+        strcpy(fieldName, token-&gt;text);
+        arraylist_add(fields, fieldName);
+        parseEatAndNextToken(parser);
+
+        // =
+        if (!matchToken(parser, TOKEN_EQ, &quot;=&quot;)) {
+            return 0;
+        }
+
+        // expr
+        Expression *expr = parseExpressionRD(parser);
+        if (parser-&gt;parserStateType == PARSER_WRONG) {
+            strcpy(parser-&gt;parserMessage, &quot;invalid sql: invalid expression.&quot;);
+            return 0;
+        }
+        arraylist_add(fieldsExpr, expr);
+
+        token = parseNextToken(parser);
+        if (token == NULL || token-&gt;type != TOKEN_COMMA) {
+            break;
+        }
+        token = parseEatAndNextToken(parser);
+    }
+    return 1;
+};</B></FONT>
+
+</PRE>
+<HR>
+<H3><CENTER>03-exp_07_05_update.c</CENTER></H3><HR>
+<PRE>
+//
+// Created by sam on 2018/9/18.
+// Edited bu mao on 2018/9/30.
+//
+#include &quot;physicalplan/physicalplan.h&quot;
+
+/*执行 update 语句*/
+/*TODO: plan_execute_update， update语句执行*/
+int plan_execute_update(dongmendb *db, sql_stmt_update *sqlStmtUpdate , transaction *tx){
+    /*删除语句以select的物理操作为基础实现。
+     * 1. 使用 sql_stmt_update 的条件参数，调用 physical_scan_select_create 创建select的物理计划并初始化;
+     * 2. 执行 select 的物理计划，完成update操作
+     * */
+<A NAME="1"></A>
+    char *tableName = sqlStmtUpdate-&gt;tableName;
+    arraylist *fields = sqlStmtUpdate-&gt;fields;
+<FONT color="#f63526"><A HREF="javascript:ZweiFrames('match85-1.html#1',3,'match85-top.html#1',1)"><IMG SRC="forward.gif" ALT="other" BORDER="0" ALIGN="right"></A><B>    arraylist *fieldsExpr = sqlStmtUpdate-&gt;fieldsExpr;
+
+    physical_scan *scan = physical_scan_generate(db, sqlStmtUpdate-&gt;where, tx);
+    scan-&gt;beforeFirst(scan);
+    size_t updated_lines = 0;
+
+    while (scan-&gt;next(scan)) {
+        for (size_t i = 0; i &lt; fields-&gt;size; ++i) {
+            char *currentFieldName = arraylist_get(fields, i);
+            variant *val = (variant *) calloc(sizeof(variant), 1);
+            enum data_type field_type = scan-&gt;getField(scan, tableName, currentFieldName)-&gt;type;
+            physical_scan_evaluate_expression(arraylist_get(fieldsExpr, i), scan, val);
+
+            if (val-&gt;type != field_type) {
+                fprintf(stdout, &quot;invalid sql: field type mismatched.&quot;);
+                return -1;
+            }
+
+            if (val-&gt;type == DATA_TYPE_INT) {
+                scan-&gt;setInt(scan, tableName, currentFieldName, val-&gt;intValue);
+            } else if (val-&gt;type == DATA_TYPE_CHAR) {
+                /*字符串超出定义时的长度，则截断字符串.*/
+                int max_length_str = scan-&gt;getField(scan, tableName, currentFieldName)-&gt;length;
+                if (max_length_str &lt; strlen(val-&gt;strValue)) {
+                    val-&gt;strValue[max_length_str] = '\0';
+                }
+                scan-&gt;setString(scan, tableName, currentFieldName, val-&gt;strValue);
+            } else {</B></FONT>
+                // other data type...
+            }
+        }
+        updated_lines += 1;
+    }
+    scan-&gt;close(scan);
+    fprintf(stdout, &quot; updated %d lines.\n&quot;, updated_lines);
+
+    return updated_lines;
+};
+</PRE>
+</BODY>
+</HTML>

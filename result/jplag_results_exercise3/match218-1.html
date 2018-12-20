@@ -1,0 +1,84 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+<HEAD>
+ <TITLE>201401060223_孙仕敏</TITLE>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <script type="text/javascript">
+  <!--
+   function ZweiFrames(URL1,F1,URL2,F2)
+   {
+    parent.frames[F1].location.href=URL1;
+    parent.frames[F2].location.href=URL2;
+   }
+  //-->
+  </script>
+</HEAD>
+<BODY BGCOLOR="#ffffff" style="margin-left:25">
+<HR>
+<H3><CENTER>02-exp_01_05_delete.c</CENTER></H3><HR>
+<PRE>
+//
+// Created by Sam on 2018/2/13.
+//
+
+#include &lt;parser/statement.h&gt;
+
+/**
+ * 在现有实现基础上，实现delete from子句
+ *
+ *  支持的delete语法：
+ *
+ *  DELETE FROM &lt;table_nbame&gt;
+ *  WHERE &lt;logical_expr&gt;
+ *
+ * 解析获得 sql_stmt_delete 结构
+ */
+<A NAME="0"></A>
+sql_stmt_delete *parse_sql_stmt_delete(ParserT *parser){
+    char *tableName = NULL;
+<FONT color="#0000ff"><div style="position:absolute;left:0"><A HREF="javascript:ZweiFrames('match218-0.html#0',2,'match218-top.html#0',1)"><IMG SRC="back.gif" ALT="other" BORDER="0" ALIGN="left"></A></div><B>    SRA_t *where = NULL;
+    if (!matchToken(parser, TOKEN_RESERVED_WORD, &quot;delete&quot;)) {
+        strcpy(parser-&gt;parserMessage, &quot;delete语法错误.&quot;);
+        return NULL;
+    }
+    TokenT *token = parseNextToken(parser);
+    //判断表名
+    if (token-&gt;type == TOKEN_WORD) {
+        tableName = new_id_name();
+        strcpy(tableName, token-&gt;text);
+    } else {
+        strcpy(parser-&gt;parserMessage, &quot;invalid sql: missing table name.&quot;);
+        return NULL;
+    }
+
+    // where
+
+    SRA_t *tablesExpr = parseTablesExpr(parser);</B></FONT>
+
+    if(!matchToken(parser, TOKEN_RESERVED_WORD, &quot;where&quot;)){
+        strcpy(parser-&gt;parserMessage, &quot;invalid sql: should be where&quot;);
+<A NAME="1"></A>        return NULL;
+    }
+
+<FONT color="#f63526"><div style="position:absolute;left:0"><A HREF="javascript:ZweiFrames('match218-0.html#1',2,'match218-top.html#1',1)"><IMG SRC="back.gif" ALT="other" BORDER="0" ALIGN="left"></A></div><B>    Expression *whereExpr = parseExpressionRD(parser);
+    if (parser-&gt;parserStateType == PARSER_WRONG) {
+        strcpy(parser-&gt;parserMessage, &quot;invalid sql.&quot;);
+        return NULL;
+    }
+    SRA_t *select = SRASelect(tablesExpr, whereExpr);
+
+    sql_stmt_delete *sqlStmtDelete = (sql_stmt_delete *) calloc(sizeof(sql_stmt_delete), 1);
+    sqlStmtDelete-&gt;tableName = tableName;
+    sqlStmtDelete-&gt;where = select;
+
+    return sqlStmtDelete;
+};</B></FONT>
+
+
+
+
+
+
+</PRE>
+</BODY>
+</HTML>

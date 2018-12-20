@@ -1,0 +1,117 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+<HEAD>
+ <TITLE>201601060303_丁韦杰</TITLE>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <script type="text/javascript">
+  <!--
+   function ZweiFrames(URL1,F1,URL2,F2)
+   {
+    parent.frames[F1].location.href=URL1;
+    parent.frames[F2].location.href=URL2;
+   }
+  //-->
+  </script>
+</HEAD>
+<BODY BGCOLOR="#ffffff" style="margin-left:25">
+<HR>
+<H3><CENTER>01-exp_07_06_delete.c</CENTER></H3><HR>
+<PRE>
+//
+// Created by sam on 2018/9/18.
+//
+#include &quot;physicalplan/physicalplan.h&quot;
+
+/*执行delete语句*/
+
+int plan_execute_delete(dongmendb *db, sql_stmt_delete *sqlStmtDelete,  transaction *tx){
+
+    int TEMPI=0;
+
+    SRA_t *selectStmt=sqlStmtDelete-&gt;where;
+    char *tableName=sqlStmtDelete-&gt;tableName;
+<A NAME="0"></A>
+    if(selectStmt!=NULL){
+        physical_scan *plan = physical_scan_generate(db,selectStmt,tx);
+<FONT color="#0000ff"><div style="position:absolute;left:0"><A HREF="javascript:ZweiFrames('match132-0.html#0',2,'match132-top.html#0',1)"><IMG SRC="back.gif" ALT="other" BORDER="0" ALIGN="left"></A></div><B>        arraylist *todelete = plan -&gt;physicalScanSelect-&gt;scan-&gt;physicalScanTable-&gt;tableInfo-&gt;fieldsName;
+        plan-&gt;beforeFirst(plan);
+        while(plan-&gt;next(plan)){
+            plan-&gt;deleterec(plan);
+            TEMPI++;
+        }
+        plan-&gt;close(plan);//关闭扫描
+        return TEMPI;
+
+    }
+    else{
+        return DONGMENDB_EINVALIDSQL;
+    }
+
+
+};</B></FONT>
+</PRE>
+<HR>
+<H3><CENTER>02-exp_01_05_delete.c</CENTER></H3><HR>
+<PRE>
+//
+// Created by Sam on 2018/2/13.
+//
+
+#include &lt;parser/statement.h&gt;
+
+/**
+ * 在现有实现基础上，实现delete from子句
+ *
+ *  支持的delete语法：
+ *
+ *  DELETE FROM &lt;table_nbame&gt;
+ *  WHERE &lt;logical_expr&gt;
+ *
+ * 解析获得 sql_stmt_delete 结构
+<A NAME="1"></A> *
+ */
+
+<FONT color="#f63526"><div style="position:absolute;left:0"><A HREF="javascript:ZweiFrames('match132-0.html#1',2,'match132-top.html#1',1)"><IMG SRC="back.gif" ALT="other" BORDER="0" ALIGN="left"></A></div><B>sql_stmt_delete *parse_sql_stmt_delete(ParserT *parser){
+
+    char *tableName=NULL;
+
+    if (!matchToken(parser, TOKEN_RESERVED_WORD, &quot;delete&quot;)) {
+        return NULL;
+    }
+    TokenT *token = parseNextToken(parser);
+//    if(!matchToken(parser, TOKEN_RESERVED_WORD, &quot;from&quot;)){
+//        strcpy(parser-&gt;parserMessage, &quot;Error: missing from.&quot;);
+//        return NULL;
+//    }
+//    token = parseNextToken(parser);
+    if (token-&gt;type == TOKEN_WORD) {
+        tableName = new_id_name(); //获取表名
+        strcpy(tableName, token-&gt;text);
+    } else {
+        strcpy(parser-&gt;parserMessage, &quot;SQL Error: missing tablename.&quot;);
+        return NULL;
+    }
+    SRA_t *tablesExpr = parseTablesExpr(parser); //构造表名的SRA对象
+    token = parseNextToken(parser);
+    if(!matchToken(parser, TOKEN_RESERVED_WORD, &quot;where&quot;)){
+        strcpy(parser-&gt;parserMessage, &quot;Error: missing where.&quot;);
+        return NULL;
+    }
+    token = parseNextToken(parser);
+    Expression *whereExpr = parseExpressionRD(parser); //where语句构造
+    if (parser-&gt;parserStateType == PARSER_WRONG) {
+        return NULL;
+    }
+
+    SRA_t *where = SRASelect(tablesExpr, whereExpr); //构造后续要遍历的SRA对象，使用sraselect而非sraproject
+    sql_stmt_delete *sqlStmtDelete = (sql_stmt_delete *)calloc(sizeof(sql_stmt_delete),1);
+
+    sqlStmtDelete-&gt;where=where;
+    sqlStmtDelete-&gt;tableName = tableName;
+
+    return sqlStmtDelete;
+
+};</B></FONT>
+</PRE>
+</BODY>
+</HTML>

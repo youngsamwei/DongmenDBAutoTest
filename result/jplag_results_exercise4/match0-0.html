@@ -1,0 +1,224 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+<HEAD>
+ <TITLE>201601060337_赵美玉</TITLE>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <script type="text/javascript">
+  <!--
+   function ZweiFrames(URL1,F1,URL2,F2)
+   {
+    parent.frames[F1].location.href=URL1;
+    parent.frames[F2].location.href=URL2;
+   }
+  //-->
+  </script>
+</HEAD>
+<BODY BGCOLOR="#ffffff">
+<HR>
+<H3><CENTER>01-exp_05_02_condition_push_down.c</CENTER></H3><HR>
+<PRE>
+//
+// Created by Sam on 2018/2/13.
+//
+
+#include &lt;dongmensql/optimizer.h&gt;
+
+/**
+ * 使用关于选择的等价变换规则将条件下推。
+ *
+ */
+
+<A NAME="0"></A>
+Expression *skipSubexpression(Expression *expr);
+Expression *findBefore(Expression *begin, Expression *end);
+<FONT color="#0000ff"><A HREF="javascript:ZweiFrames('match0-1.html#0',3,'match0-top.html#0',1)"><IMG SRC="forward.gif" ALT="other" BORDER="0" ALIGN="right"></A><B>void splitCNF(Expression *expr, SRA_t **sra);
+/**
+ * 等价变换：将满足条件的 SRA_SELECT 类型的节点进行条件串接
+ */
+void selectCNFOptimize(SRA_t **sra);
+
+
+bool field_exists_in_table(table_manager *tm, char *tableName, char *fieldName, transaction *tx);
+
+bool containFields(SRA_t *sra, Expression *cond, table_manager *tm, transaction *tx);
+
+/**
+ * 等价变换：SELECT 下移
+ */
+void switchDownOptimize(SRA_t **sra, table_manager *tm, transaction *tx);
+
+
+/*输入一个关系代数表达式，输出优化后的关系代数表达式
+ * 要求：在查询条件符合合取范式的前提下，根据等价变换规则将查询条件移动至合适的位置。
+ * */
+SRA_t *dongmengdb_algebra_optimize_condition_pushdown(SRA_t *sra, table_manager *tableManager, transaction *tx){
+
+    /*初始关系代数语法树sra由三个操作构成：SRA_PROJECT -&gt; SRA_SELECT -&gt; SRA_JOIN，即对应语法树中三个节点。*/
+
+    /*第一步：.等价变换：将SRA_SELECT类型的节点进行条件串接*/
+
+        /*1.1 在sra中找到每个SRA_Select节点 */
+        /*1.2 检查每个SRA_Select节点中的条件是不是满足串接条件：多条件且用and连接*/
+        /*1.3 若满足串接条件则：创建一组新的串接的SRA_Select节点，等价替换当前的SRA_Select节点*/
+
+    /*第二步：等价变换：条件交换*/
+        /*2.1 在sra中找到每个SRA_Select节点*/
+        /*2.2 对每个SRA_Select节点做以下处理：
+         * 在sra中查找 SRA_Select 节点应该在的最优位置：
+         *     若子操作也是SRA_Select，则可交换；
+         *     若子操作是笛卡尔积，则可交换，需要判断SRA_Select所包含的属性属于笛卡尔积的哪个子操作
+         * 最后将SRA_Select类型的节点移动到语法树的最优位置。
+         * */
+
+//    printf(&quot;\norigin:\n&quot;);
+//    SRA_print(sra);
+    selectCNFOptimize(&amp;sra);
+//    printf(&quot;\nstep1:\n&quot;);
+//    SRA_print(sra);
+    switchDownOptimize(&amp;sra, tableManager, tx);
+//    printf(&quot;\nstep2:\n&quot;);
+//    SRA_print(sra);
+//    printf(&quot;\n&quot;);
+    return sra;
+}
+
+Expression *skipSubexpression(Expression *exprzmy) {
+    if (!exprzmy) return NULL;
+    if (exprzmy-&gt;term)
+        return exprzmy-&gt;nextexpr;
+
+    if (exprzmy-&gt;opType &lt;= TOKEN_COMMA) {
+        int op_numzmy = operators[exprzmy-&gt;opType].numbers;
+        exprzmy = exprzmy-&gt;nextexpr;
+        while (op_numzmy--)
+            exprzmy = skipSubexpression(exprzmy);
+
+        return exprzmy;
+    }
+
+    return NULL;
+}
+
+Expression *findBefore(Expression *begin, Expression *end) {
+    Expression *iterzmy = begin;
+    while (iterzmy-&gt;nextexpr != end &amp;&amp; iterzmy-&gt;nextexpr != NULL)
+        iterzmy = iterzmy-&gt;nextexpr;
+    return iterzmy;
+}
+
+bool isCnf(Expression *exprzmy) {
+    if (exprzmy-&gt;opType == TOKEN_AND) return true;
+    return false;
+}
+
+void splitCNF(Expression *expr, SRA_t **sra) {
+    Expression *leftzmy = expr-&gt;nextexpr;
+    Expression *rightzmy = skipSubexpression(leftzmy);
+
+    Expression *left_tail = findBefore(leftzmy, rightzmy);
+    left_tail-&gt;nextexpr = NULL;
+
+    (*sra)-&gt;select.sra = SRASelect((*sra)-&gt;select.sra, leftzmy);
+    (*sra)-&gt;select.cond = rightzmy;
+}
+
+void selectCNFOptimize(SRA_t **sra) {
+    SRA_t *sr = *sra;
+    if (!sr) return;
+    switch (sr-&gt;t) {
+        case SRA_SELECT:
+            if (isCnf(sr-&gt;select.cond))
+                splitCNF(sr-&gt;select.cond, sra);
+            selectCNFOptimize(&amp;(sr-&gt;select.sra));
+            break;
+        case SRA_PROJECT:
+            selectCNFOptimize(&amp;(sr-&gt;project.sra));
+            break;
+        case SRA_JOIN:
+            selectCNFOptimize(&amp;(sr-&gt;join.sra1));
+            selectCNFOptimize(&amp;(sr-&gt;join.sra2));
+            break;
+        default:
+            break;
+    }
+}
+
+bool field_exists_in_table(table_manager *tm, char *tableName, char *fieldName, transaction *tx) {
+    table_info *tableInfozmy = table_manager_get_tableinfo(tm, tableName, tx);
+
+    arraylist *fieldsName = tableInfozmy-&gt;fieldsName;
+    for (size_t i = 0; i &lt; fieldsName-&gt;size; ++i)
+        if (strcmp(arraylist_get(fieldsName, i), fieldName) != 0)
+            return false;
+
+    return true;
+}
+
+bool containFields(SRA_t *sra, Expression *cond, table_manager *tm, transaction *tx) {
+    switch (sra-&gt;t) {
+        case SRA_SELECT:
+            return containFields(sra-&gt;select.sra, cond, tm, tx);
+        case SRA_JOIN:
+            return containFields(sra-&gt;join.sra1, cond, tm, tx) &amp;&amp;
+                   containFields(sra-&gt;join.sra2, cond, tm, tx);
+        case SRA_TABLE:
+            for (Expression *iter = cond; iter != NULL; iter = iter-&gt;nextexpr) {
+                if (iter-&gt;term &amp;&amp; iter-&gt;term-&gt;t == TERM_COLREF) {
+                    if (iter-&gt;term-&gt;ref-&gt;tableName) {
+                        if (strcmp(iter-&gt;term-&gt;ref-&gt;tableName, sra-&gt;table.ref-&gt;table_name) != 0)
+                            return false;
+                    } else {
+                        if (field_exists_in_table(tm, sra-&gt;table.ref-&gt;table_name, iter-&gt;term-&gt;ref-&gt;columnName, tx))
+                            return false;
+                    }
+                }
+            }
+            return true;
+        default:
+            return false;
+    }
+}
+
+void switchDownOptimize(SRA_t **sra, table_manager *tm, transaction *tx) {
+    SRA_t *s1 = *sra;
+    if (!s1) return;
+    switch (s1-&gt;t) {
+        case SRA_SELECT: {
+            switchDownOptimize(&amp;(s1-&gt;select.sra), tm, tx);
+            SRA_t *s2 = s1-&gt;select.sra;
+            if (s2-&gt;t == SRA_JOIN) {
+                bool switch_left = containFields(s2-&gt;join.sra1, s1-&gt;select.cond, tm, tx);
+                bool switch_right = containFields(s2-&gt;join.sra2, s1-&gt;select.cond, tm, tx);
+                if (switch_left &amp;&amp; !switch_right) {
+                    s1-&gt;select.sra = s2-&gt;join.sra1;
+                    s2-&gt;join.sra1 = s1;
+                    *sra = s2;
+                    switchDownOptimize(&amp;(s1-&gt;join.sra1), tm, tx);
+                } else if (switch_right &amp;&amp; !switch_left) {
+                    s1-&gt;select.sra = s2-&gt;join.sra2;
+                    s2-&gt;join.sra2 = s1;
+                    *sra = s2;
+                    switchDownOptimize(&amp;(s1-&gt;join.sra2), tm, tx);
+                }
+            } else if (s2-&gt;t == SRA_SELECT) {
+                s1-&gt;select.sra = s2-&gt;select.sra;
+                s2-&gt;select.sra = s1;
+                *sra = s2;
+                switchDownOptimize(&amp;(s2-&gt;select.sra), tm, tx);
+            }
+        }
+            break;
+        case SRA_PROJECT:
+            switchDownOptimize(&amp;(s1-&gt;project.sra), tm, tx);
+            break;
+        case SRA_JOIN:
+            switchDownOptimize(&amp;(s1-&gt;join.sra1), tm, tx);
+            switchDownOptimize(&amp;(s1-&gt;join.sra2), tm, tx);
+            break;
+        default:
+            break;
+    }
+}</B></FONT>
+</PRE>
+</BODY>
+</HTML>

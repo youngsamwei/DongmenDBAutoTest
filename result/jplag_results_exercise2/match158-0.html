@@ -1,0 +1,228 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+<HEAD>
+ <TITLE>201601060502_曾怡然</TITLE>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <script type="text/javascript">
+  <!--
+   function ZweiFrames(URL1,F1,URL2,F2)
+   {
+    parent.frames[F1].location.href=URL1;
+    parent.frames[F2].location.href=URL2;
+   }
+  //-->
+  </script>
+</HEAD>
+<BODY BGCOLOR="#ffffff">
+<HR>
+<H3><CENTER>03-exp_01_04_update.c</CENTER></H3><HR>
+<PRE>
+//
+// Created by Sam on 2018/2/13.
+//
+
+#include &lt;parser/statement.h&gt;
+#include &lt;parser/parser.h&gt;
+#include &lt;utils/utils.h&gt;
+/**
+ * 在现有实现基础上，实现update from子句
+ *
+ * 支持的update语法：
+ *UPDATE Person SET Address = 'Zhongshan 23', City = 'Nanjing'
+ *WHERE LastName = 'Wilson'
+ * UPDATE &lt;table_name&gt; SET &lt;field1&gt; = &lt;expr1&gt;[, &lt;field2 = &lt;expr2&gt;, ..]
+ * WHERE &lt;logical_expr&gt;
+ *
+ * 解析获得 sql_stmt_update 结构
+<A NAME="0"></A> */
+
+/*TODO: parse_sql_stmt_update， update语句解析*/
+<FONT color="#0000ff"><A HREF="javascript:ZweiFrames('match158-1.html#0',3,'match158-top.html#0',1)"><IMG SRC="forward.gif" ALT="other" BORDER="0" ALIGN="right"></A><B>sql_stmt_update *parse_sql_stmt_update(ParserT *parser){
+    // fprintf(stderr, &quot;TODO: update is not implemented yet. in parse_sql_stmt_update \n&quot;);
+    char *tableName = NULL;
+    arraylist *fields = arraylist_create();
+    arraylist *fieldsExpr = arraylist_create();
+
+    // * 首先匹配 update, 使用matchToken(parser,TOKEN_RESERVED_WORD,&quot;update&quot;)匹配
+    TokenT *token = parseNextToken(parser);
+    if(!matchToken(parser, TOKEN_RESERVED_WORD, &quot;update&quot;)){
+        strcpy(parser-&gt;parserMessage, &quot;error1.&quot;);
+        return NULL;
+    }
+
+    // * 获取表名 使用 if 判断是否是 TOKEN_WORD 类型，如果是，获得表名；给字符串指针开空间的时候可以使用new_id_name()函数
+    token = parseNextToken(parser);
+    if(token-&gt;type == TOKEN_WORD){
+        tableName = new_id_name();
+        strcpy(tableName,token-&gt;text);
+        //token = parseEatToken(parser);
+    }else {
+        strcpy(parser-&gt;parserMessage,&quot;error2.&quot;);
+        return  NULL;
+    }
+
+    // * 匹配 set 使用 matchToken(parser,TOKEN_RESERVED_WORD,&quot;set&quot;)
+    token = parseEatAndNextToken(parser);
+    if(!matchToken(parser, TOKEN_RESERVED_WORD, &quot;set&quot;)){
+        strcpy(parser-&gt;parserMessage, &quot;error3.&quot;);
+        return NULL;
+    }
+
+    // * 使用循环获得字段名（TOKEN_WORD 类型），放入一个 fields(arraylist 类型)中
+    // * 循环获得值（或者表达式）parseExpressionRD(parse)函数,fieldsExpr(arraylist 类型)中
+    // update student
+    //set sage=19,semail=&quot;1291332&quot;
+    //where sname='张三'
+    token = parseNextToken(parser);
+    if(token-&gt;type == TOKEN_WORD) {
+
+        while(token-&gt;type == TOKEN_WORD ) {
+            //列名
+            arraylist_add(fields,token-&gt;text);
+            //等号
+            token = parseEatAndNextToken(parser);
+            if (token-&gt;type == TOKEN_EQ) {
+                token = parseEatAndNextToken(parser);
+            } else {
+                strcpy(parser-&gt;parserMessage, &quot;error4.&quot;);
+                return NULL;
+            }
+            //值
+//            if (token-&gt;type == TOKEN_STRING || token-&gt;type == TOKEN_DECIMAL) {
+//
+//                if (token-&gt;type == TOKEN_STRING) {
+//                    /*去掉引号, 已经在tokenizer.c中完成*/
+//                    int len = strlen(token-&gt;text) - 1;
+//                    char *v = token-&gt;text + 1;
+//                    char *value = (char *) calloc(len, 1);
+//                    strcpy(value, v);
+//                    value[len - 1] = '\0';
+//
+//                    arraylist_add(fieldsExpr, token-&gt;text);
+//                } else {
+//                        integer *i = (integer *) calloc(sizeof(integer *), 1);
+//                        i-&gt;val = atoi(token-&gt;text);
+//                        arraylist_add(fieldsExpr, i);
+//                }
+//            } else {
+//                strcpy(parser-&gt;parserMessage, &quot;语法错误.&quot;);
+//                return NULL;
+//            }
+            Expression *expr = parseExpressionRD(parser);
+            arraylist_add(fieldsExpr,expr);
+
+            //逗号
+            token = parseNextToken(parser);
+            if(token == NULL){
+                break;
+            }
+            if(token-&gt;type == TOKEN_COMMA){
+                token = parseEatAndNextToken(parser);
+            }else {
+                break;
+            }
+
+        }
+
+    }else  if(token-&gt;type != TOKEN_WORD)  {
+        strcpy(parser-&gt;parserMessage, &quot;error5.&quot;);
+        return NULL;
+    }
+
+    // * 匹配 where，matchToken(parser,TOKEN_RESERVED_WORD,&quot;where&quot;)，注意不是所有update语句都伴随一个where表达式
+    // * 使用parseExpressionRD(parse)获取值（或者表达式），并包裹在SRA_t中（使用SRA_SELECT构造），作为sql_stmt_update-&gt;where的值。
+    // *（语句若不伴随where表达式则需要以一个SRA_TABLE代替，具体实现可参考 exp_01_stmt_parser/exp_01_03_select.c）
+    //where
+    token = parseNextToken(parser);
+    /*if(!matchToken(parser,TOKEN_RESERVED_WORD,&quot;where&quot;)){
+        strcpy(parser-&gt;parserMessage,&quot;error6&quot;);
+        return  NULL;
+    }*/
+
+    //表名为空
+    TableReference_t *ref1 = TableReference_make(tableName,NULL);
+    SRA_t *where = SRATable(ref1);
+    if(matchToken(parser,TOKEN_RESERVED_WORD,&quot;where&quot;)) {
+
+        //where条件
+        token = parseNextToken(parser);
+        Expression *whereExpr = parseExpressionRD(parser);
+        where = SRASelect(where, whereExpr);
+        if (parser-&gt;parserStateType == PARSER_WRONG) {
+            return NULL;
+        }
+
+    }
+    // * 创建sql_stmt_update指针，开空间，对各字段进行赋值，返回sql_stmt_update结构体
+    sql_stmt_update *sqlStmtUpdate = (sql_stmt_update *)calloc(sizeof(sql_stmt_update),1);
+    sqlStmtUpdate-&gt;tableName = tableName;
+    sqlStmtUpdate-&gt;fields = fields;
+    sqlStmtUpdate-&gt;fieldsExpr = fieldsExpr;
+    SRA_print(where);
+    sqlStmtUpdate-&gt;where = where;
+
+    return  sqlStmtUpdate;
+
+};</B></FONT>
+</PRE>
+<HR>
+<H3><CENTER>04-exp_07_05_update.c</CENTER></H3><HR>
+<PRE>
+//
+// Created by sam on 2018/9/18.
+//
+#include &quot;physicalplan/physicalplan.h&quot;
+<A NAME="1"></A>
+/*执行 update 语句*/
+/*TODO: plan_execute_update， update语句执行*/
+<FONT color="#f63526"><A HREF="javascript:ZweiFrames('match158-1.html#1',3,'match158-top.html#1',1)"><IMG SRC="forward.gif" ALT="other" BORDER="0" ALIGN="right"></A><B>int plan_execute_update(dongmendb *db, sql_stmt_update *sqlStmtUpdate , transaction *tx){
+    /*删除语句以select的物理操作为基础实现。
+     * 1. 使用 sql_stmt_update 的条件参数，调用 physical_scan_select_create 创建select的物理计划并初始化;
+     * 2. 执行 select 的物理计划，完成update操作
+     * */
+    //fprintf(stderr, &quot;TODO: update is not implemented yet. in plan_execute_update \n&quot;);
+
+    //记录被更新的条数
+    size_t updated_counts = 0;
+
+//产生物理计划
+    physical_scan *sc = physical_scan_generate(db,sqlStmtUpdate-&gt;where,tx);
+//遍历计划（循环）
+    //置于最前
+    sc-&gt;beforeFirst(sc);
+    //循环扫描，查找有没有下一个
+    while(sc-&gt;next(sc)){
+        //针对每个字段进行处理，进行循环，字段判断条件
+        for(size_t i = 0 ; i &lt; sqlStmtUpdate-&gt;fields-&gt;size ; i++){
+            //获取第i个字段的名字
+            char *curFieldName = arraylist_get(sqlStmtUpdate-&gt;fields , i);
+            //创建可变结构体,存储set等号后面的表达式值
+            variant *var = (variant*)calloc(sizeof(variant),1);
+            //获取字段的数据类型
+            enum data_type fields_type = sc-&gt;getField(sc , sqlStmtUpdate-&gt;tableName , curFieldName)-&gt;type;
+            //获取表达式值放到可变结构体，并计算赋值表达式
+            physical_scan_evaluate_expression(arraylist_get(sqlStmtUpdate-&gt;fieldsExpr , i) , sc , var);
+            //如果与当前数据类型不匹配
+            if(var-&gt;type != fields_type){
+                fprintf(stdout , &quot;error&quot;);
+                return DONGMENDB_EINVALIDSQL;
+            }
+            //如果与当前数据类型匹配
+            if(var-&gt;type == DATA_TYPE_INT){
+                //为INT类型，则使用scan设置int值
+                sc-&gt;setInt(sc , sqlStmtUpdate-&gt;tableName , curFieldName , var-&gt;intValue);
+            }else if(var-&gt;type == DATA_TYPE_CHAR){
+                //为CHAR类型，则使用scan设置char值
+                sc-&gt;setString(sc , sqlStmtUpdate-&gt;tableName , curFieldName , var-&gt;strValue);
+            }
+        }
+        //条数增加
+        updated_counts++;
+    }
+//关闭scan
+    sc-&gt;close(sc);
+    return updated_counts;
+};</B></FONT>
+</PRE>
+</BODY>
+</HTML>
