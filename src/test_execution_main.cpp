@@ -89,9 +89,9 @@ int main(int argc, char *argv[]) {
 
     TestExecution te(&experiment_config_2);
 //    te.run(exp_name, exp_target, exp_dir_name, exp_files, work_dir, dongmendb_src_dir, output_dir);
-    te.batchrun(&experiment_config_2);
-
-    te.batchrun(&experiment_config_3);
+//    te.batchrun(&experiment_config_2);
+//
+//    te.batchrun(&experiment_config_3);
 
     te.batchrun(&experiment_config_4);
 
